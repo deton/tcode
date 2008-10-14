@@ -62,3 +62,24 @@ thanks to 木原さん、山辺さん
 == アンインストール ==
 
  * インストールしたファイルを削除するだけです。レジストリは使用していません。
+
+= 関連リンク =
+
+== 漢直 Win 関連 ==
+
+ * [http://t.pos.to/tc/ T-code修行中 漢字直接入力のすすめ]
+  「漢直Win」の作者の徳岡宏樹さんのページ。
+ → オリジナル版の[http://t.pos.to/tc/kanchoku.html 漢直 Win (ver1.26)]
+ → 漢索板
+ * [http://openlab.jp/tcode/ Home of T-Code]
+ T-Code Laboratory。
+ → T-Code メーリングリストで拡張された[http://openlab.jp/tcode/soft.html 漢直 Win (ver1.26eb)]
+
+== 2ちゃんねる ==
+
+ * 漢直スレ
+  * [http://pc8.2ch.net/test/read.cgi/unix/1082032043/ 【漢直】T-Code/TUT-Codeスレ Lesson3【連習】] (2004-04-15 〜 現行スレ)
+  * [http://pc.2ch.net/test/read.cgi/unix/1061936143/ 【漢直】T-Code/TUT-Codeスレ Lesson2【連習】] (2003-08-27 〜 2004-04-18)
+  * [http://pc.2ch.net/test/read.cgi/unix/1014523030/ 【原理】T-Code連習マラソン【主義】] (2002-02-24 〜 2003-08-27)
+ * [http://homepage3.nifty.com/songs/tcode/2ch/00index.html 2ch_log]
+  * 漢直スレの過去ログ保管庫 (藤田泰裕さん)

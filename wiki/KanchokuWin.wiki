@@ -1,4 +1,4 @@
-漢直 Win 1.27
+漢直 Win 1.28
 
 = Introduction =
 
@@ -7,33 +7,34 @@
 
 = 概要 =
 
-漢直Win 1.27 は、徳岡宏樹さんの 漢直 Win 1.26 および T-Code Laboratory で拡張された 漢直 Win 1.26eb をもとに、 T-Code メーリングリストや、 2ちゃんねるの漢直スレに投稿されたパッチなどをまとめたものです。主な特徴は次のとおりです。
+漢直Win 1.28 は、徳岡宏樹さんの 漢直 Win 1.26 および T-Code Laboratory で拡張された 漢直 Win 1.26eb をもとに、 T-Code メーリングリストや、 2ちゃんねるの漢直スレに投稿されたパッチなどをまとめたものです。主な特徴は次のとおりです。
 
  * WindowsXP など、Windows95 以降の Windows で動作します
  * T-Code, TUT-Code, G-Code に対応しています
+ * Shift を併用する打鍵に対応し、「き」等にも対応可能です
  * 部首合成変換、交ぜ書き変換、文字ヘルプ、熟語ガイドなどの補助機能を提供します
 
 = 変更点 =
 
-== バージョン 1.27f-20060325 の変更点 ==
+== バージョン 1.28 の変更点 ==
 
- * Word の図表番号挿入ダイアログで文字化けするバグの修正 (thanks to 木原さん[tcode-ml:2665])
-
-== バージョン 1.27f の主な変更点 ==
-thanks to 木原さん、山辺さん
-
- * フックと ImmSetCompositionString の組み合わせによる文字送出方法
- * ウィンドウクラスごとに異なる文字の送出方法のサポート
- → これまで 漢直Win では入力できなかったアプリケーションでも、 利用できる可能性が広がりました
- * 活用形の交ぜ書き変換
- → 「話さない」のように、活用語尾を含む読みで変換できます (</> キーで語幹を伸ばし/縮め)
- * 部首合成アルゴリズムの改良
- → 「準 + シ → 隼」のように、従来より精確な変換ができます (山辺さんによるアルゴリズム)。
- * 入力の統計
- → kwrecord.txt, kwstat.txt ファイルに、 入力した文字の統計を記録します
- * 半角かな変換
- → enableHankakuKana=1 オプションを指定すると、 全角/半角モードのかたかなを半角かなに変換します
- * Firefox 1.5 で BackSpace で 2 文字消えるバグの対処
+ * シフト打鍵を用いる入力方式に対応
+ * テーブルファイルの書式を拡張
+ * 外字入力補助機能
+ * 強制練習モード
+ * シフト打鍵によるストロークロック機能
+ * 漢直WinをOFFにしたときに各種モードを初期状態にリセットするオプション
+ * offHide=2 の状態から一時的にウィンドウを表示する機能
+ * BackSpace でストローク単位で消去するオプション
+ * 仮想鍵盤の配色・フォントのカスタマイズ機能 (kwstyle.exe)
+ * useCtrlKey=1 の場合や XKeymacs との同時使用時の問題を修正
+ * C-h 等を XKeymacs と同様の方法で処理するオプション
+ * BackSpace 等や @v のキー送出に keybd_event() を用いるオプション
+ * 文字送出方法に WM_UNICHAR を追加
+ * Unicode 文字への対応のテストコード (直接入力のみ、U+0080～U+3FFF限定)
+ * タイトルバーのカタカナモード・全角モード・句読点モードの表示順を t.tbl での配置に合わせて修正
+ * 直前の文字を入力してから仮想鍵盤を表示するまでの時間指定オプション
+ * その他バグ修正
 
 以前の変更点は、ドキュメントの「変更履歴」を参照してください。
 
@@ -74,11 +75,15 @@ thanks to 木原さん、山辺さん
  * [http://openlab.jp/tcode/ Home of T-Code]
  T-Code Laboratory。
  → T-Code メーリングリストで拡張された[http://openlab.jp/tcode/soft.html 漢直 Win (ver1.26eb)]
+ * [http://www.sato.kuis.kyoto-u.ac.jp/~yuse/tcode/ T is for T-Code]
+ 長期にわたりメンテナとなって頂いていたゆせ よしひろさんのページ。
+ → [http://www.sato.kuis.kyoto-u.ac.jp/~yuse/tcode/kw/ 漢直Win 1.27*]
 
 == 2ちゃんねる ==
 
  * 漢直スレ
-  * [http://pc8.2ch.net/test/read.cgi/unix/1082032043/ 【漢直】T-Code/TUT-Codeスレ Lesson3【連習】] (2004-04-15 〜 現行スレ)
+  * [http://pc12.2ch.net/test/read.cgi/unix/1168873587/ 【漢直】T-Code/TUT-Codeスレ Lesson4【連習】] (2007-01-16 〜 現行スレ)
+  * [http://pc8.2ch.net/test/read.cgi/unix/1082032043/ 【漢直】T-Code/TUT-Codeスレ Lesson3【連習】] (2004-04-15 〜 2007-01-23)
   * [http://pc.2ch.net/test/read.cgi/unix/1061936143/ 【漢直】T-Code/TUT-Codeスレ Lesson2【連習】] (2003-08-27 〜 2004-04-18)
   * [http://pc.2ch.net/test/read.cgi/unix/1014523030/ 【原理】T-Code連習マラソン【主義】] (2002-02-24 〜 2003-08-27)
  * [http://homepage3.nifty.com/songs/tcode/2ch/index.html 2ch_log]

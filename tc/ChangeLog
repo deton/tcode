@@ -1,5 +1,11 @@
 2003-12-12  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
+	* lisp/ttc-tbl.el (tcode-special-prefix-alist): TT-Code の右表の打
+	鍵図ヘルプで二連打の記号が違ってるバグを修正した。
+	* lisp/tc-help.el (tcode-draw-tables): 拡張表でなく基本表が表示され
+	てしまうバグを修正した。
+	Patch by YUSE Y <hiyuse@nifty.com>
+
 	* lisp/tc.el (tcode-set-key-layout, tcode-set-key)
 	(tcode-decode-chars, tcode-input-method)
 	(tcode-set-stroke-property, tcode-set-action)

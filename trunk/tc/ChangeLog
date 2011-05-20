@@ -1,5 +1,13 @@
 2004-01-26  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
+	* lisp/try-tbl.el (tcode-special-prefix-alist):
+	* lisp/ttc-tbl.el (tcode-special-prefix-alist): ヘルプ・プレフィッ
+	クスを Try-Code と TT-Code の間で統一した。
+	第一拡張表 ▲ / ○ / ▼
+	第二拡張表 ■ / ○ / ◆
+
+	* lisp/ttc-ltbl.el (tcode-special-commands-alist): Fix Comment.
+
 	* lisp/try-tbl.el (tcode-key-translation-rule-table): デフォールト
 	値の第 0 要素を 40 にセットした。
 	Suggested by TAKAHASHI Naoto <ntakahas@m17n.org>

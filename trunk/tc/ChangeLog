@@ -3,6 +3,8 @@
 	* lisp/Makefile.am (COMMON_EL_FILES): Try-Code と TT-Code のテーブ
 	ル・ファイルを make の対象にした。
 	* lisp/Makefile.in (COMMON_EL_FILES): lisp/Makefile.am から自動生成。
+	* lisp/tc-pre-base.in (tcode-package-name-alist): TT-Code と
+	Try-Code をパッケージ・リストに追加した。
 	Reported by YUSE Y <hiyuse@nifty.com>
 	Suggested by TAKAHASHI Naoto <ntakahas@m17n.org>
 

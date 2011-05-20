@@ -215,7 +215,7 @@ Tコードモード中のキー操作は次のとおり。
       (setq l (cdr l)))))
 
 (setq tcode-special-prefix-alist
-      '(((40) "try-etbl" "▲" "▲" "○" "▼")))
+      '(((40) "try-etbl" "■" "■" "○" "回")))
 
 (setq tcode-stroke-to-string-option 'try-code-stroke-to-string
       eelll-stroke-to-string-function 'try-code-stroke-to-string

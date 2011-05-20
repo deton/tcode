@@ -1,3 +1,11 @@
+2004-02-02  Masayuki Ataka  <masayuki.ataka@gmail.com>
+
+	* lisp/try-tbl.el (tcode-special-prefix-alist):
+	* lisp/ttc-tbl.el (tcode-special-prefix-alist): ヘルプ・プレフィッ
+	クスを変更した。
+	第一拡張表 ■ / ○ / 回
+	第二拡張表 ▲ / ○ / 品
+
 2004-01-26  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
 	* lisp/try-etbl.el: Try-Code 2004-01-25 版に追随した。

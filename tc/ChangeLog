@@ -1,3 +1,37 @@
+2003-12-12  Masayuki Ataka  <masayuki.ataka@gmail.com>
+
+	* lisp/tc.el (tcode-set-key-layout, tcode-set-key)
+	(tcode-decode-chars, tcode-input-method)
+	(tcode-set-stroke-property, tcode-set-action)
+	(tcode-set-action-to-table, tcode-load-table): Try-Code, TT-Code 用
+	の拡張。
+	(tcode-key-num, tcode-ext-keys)
+	(tcode-this-command-keys, tcode-special-prefix-alist):
+	New variables.
+	(tcode-pointer-ref, tcode-pointer-set, tcode-load-table-1):
+	New functions.
+	* lisp/eelll.el (eelll-prepare-text, eelll-tcode-encode)
+	(eelll-stroke-for-char, eelll-draw-chart, eelll-completing-read)
+	(eelll-put-help-char, eelll-normalize-text-buffer)
+	(eelll-compile-text): Ditto.
+	(eelll-stroke-to-string-column, eelll-prefix-stroke): New
+	variables.
+	* lisp/tc-bitmap.el (tc-bitmap-stroke-to-string): Ditto.
+	* lisp/tc-help.el (tcode-stroke-to-string)
+	(tcode-draw-stroke-for-char, tcode-show-tables)
+	(tcode-make-table-line, tcode-make-LR-block)
+	(tcode-insert-stroke-file, tcode-draw-tables): Ditto
+	(tcode-stroke-prefix-match, tcode-key-to-help-string): New
+	functions.
+	* lisp/tc-image.el (tc-image-stroke-to-string): Ditto.
+	* lisp/tc-pre.el (tcode-package-name-alist): Ditto.
+	* lisp/tc-setup.el: Ditto.
+	* lisp/ttc-tbl.el, lisp/ttc-rtbl.el, lisp/ttc-ltbl.el:
+	New file。TT-Code 用のテーブル・ファイル。
+	* lisp/try-tbl.el, lisp/try-etbl.el: New file。
+	Try-Code 用のテーブル・ファイル。
+	Patch by YAGI Tatsuya <ynyaaa@ybb.ne.jp>
+
 2003-05-19  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
 	* ChangeLog: New file。

@@ -204,6 +204,15 @@ nilの時にはその逆。" :type 'boolean :group 'tcode)
 -3:	`tcode-mode-map' にしたがったコマンド。
 < -3:	- (文字コード)。")
 
+(defvar tcode-key-num 40
+  "Tコードで使うキーの数。標準で40。")
+
+(defvar tcode-ext-keys nil
+  "Tコードキー40以上に対応するキーのリスト")
+
+(defvar tcode-this-command-keys nil
+  "Tコードでコマンド呼び出しに使ったキーシーケンス(実際のキー)")
+
 ;;
 ;; These variables are set in a table file, e.g. tc-tbl.el.
 ;;
@@ -229,6 +238,10 @@ nilの時にはその逆。" :type 'boolean :group 'tcode)
   "`tcode-mode-help' によって表示される文字列。
 nil のときは `tcode-mode' から得る。")
 (defvar tcode-stroke-file-name nil "ストローク表のパス名")
+
+(defvar tcode-special-prefix-alist nil
+  "ヘルプで特別に扱うプレフィクスストロークのalist
+要素は (stroke table-file stroke-to-string-prefix @draw-table-data)")
 
 ;;
 ;; misc. global variables
@@ -387,13 +400,21 @@ nil のときは `tcode-mode' から得る。")
 		       (aset table (- (upcase char) ? ) -2))
 		      (t
 		       (aset table (- char ? ) i)))
-		(setq i (1+ i)))
+		(setq i (1+ i))
+		(if (= i 40) (setq i 100)))
 	      (cdr list)))
     (let ((char ? ))
       (while (<= char ?~)
 	(if (lookup-key tcode-mode-map (char-to-string char))
 	    (aset table (- char ? ) -3))
 	(setq char (1+ char))))
+    (let ((l tcode-ext-keys)
+	  (i 40))
+      (while l
+	(if (car l)
+	    (aset table (- (car l) ? ) i))
+	(setq i (1+ i)
+	      l (cdr l))))
     (setq tcode-key-translation-rule-table table)
     list))
 
@@ -443,7 +464,8 @@ TYPE ... 機能の種類。(変数 `tcode-key-translation-rule-table' 参照)
   (let ((addr (string-to-char key)))
     (if (and (>= addr ? )
 	     (<= addr ?~))
-	(aset tcode-key-translation-rule-table (- addr ? ) type)
+	(when (> 0 (aref tcode-key-translation-rule-table (- addr ? )))
+	  (aset tcode-key-translation-rule-table (- addr ? ) type))
       (error "「%s」には割り当てられません。" key)))
   ;; set key binding
   (define-key tcode-mode-map key (and (= type -3)
@@ -569,7 +591,7 @@ t ... cancel"
 						       (nreverse trace))
 					       tcode-another-table))))
 		  (or (cdr rval)
-		      (mapconcat 'char-to-string trace nil))))
+		      (mapconcat 'char-to-string (nreverse trace) nil))))
 	       ((= key -1)
 		c)
 	       ((= key -2)
@@ -580,9 +602,9 @@ t ... cancel"
 		(- key)))
 	 (nreverse (cons c trace)))
       ;; C is a key on TABLE
-      (if (>= key 40)
+      (if (>= key 100)
 	  (setq tcode-shift-state t
-		key (mod key 40)))
+		key (mod key 100)))
       (let* ((rval (tcode-decode (list key) table))
 	     (status (car rval))
 	     (val (cdr rval)))
@@ -680,13 +702,14 @@ t ... cancel"
       (setq tcode-number-strokes (1+ tcode-number-strokes))
       (catch 'cancel
 	(setq tcode-shift-state nil)
-	(let* ((action (let (input-method-function) ; disable
-			  (car (tcode-decode-chars ch))))
-	       (evaled (let (input-method-function)
-			 (tcode-eval-action action)))
-	       (result (if evaled
+	(let ((result (let ((input-method-function) ; disable
+			    decoded evaled)
+			(setq decoded (tcode-decode-chars ch)
+			      tcode-this-command-keys (cdr decoded)
+			      evaled (tcode-eval-action (car decoded)))
+			(if evaled
 			   (tcode-apply-filters evaled)
-			 (throw 'cancel nil))))
+			  (throw 'cancel nil)))))
 	  (if (and result
 		   (car result))
 	      (setq tcode-input-chars (+ tcode-input-chars (length result))
@@ -849,81 +872,74 @@ ARG が nil でないとき、ARG 番目の組に切り替える。"
 	   (if (char-or-string-p value)
 	       (tcode-put-stroke-property value strokes without-overwrite))))))
 
-(defun tcode-set-stroke-property (table strokes &optional without-overwrite)
+(defun tcode-set-stroke-property (table strokes &optional
+					without-overwrite prefix)
   (cond ((or (null table)
 	     (tcode-function-p table)))
 	((char-or-string-p table)
-	 (tcode-put-stroke-property table (vconcat strokes) without-overwrite))
+	 (tcode-put-stroke-property table (vconcat prefix strokes)
+				    without-overwrite))
 	((consp table)
 	 (mapcar (lambda (ent)
 		   (tcode-set-stroke-property (cdr ent)
 					      (append strokes
 						      (list (car ent)))
-					      without-overwrite))
+					      without-overwrite prefix))
 		 table))
 	((vectorp table)
 	 (let ((i 0))
-	   (while (< i 40)
+	   (while (< i (length table))
 	     (tcode-set-stroke-property (aref table i)
 					(append strokes (list i))
-					without-overwrite)
+					without-overwrite prefix)
 	     (setq i (1+ i)))))
 	((and (symbolp table)
 	      (boundp table))
-	 (tcode-set-stroke-property (eval table) strokes without-overwrite))))
+	 (tcode-set-stroke-property (eval table) strokes
+				    without-overwrite prefix))))
 
-(defun tcode-set-action (table strokes value)
-  "TABLE 中の、キー入力 STROKES に相当する所に VALUE を設定する。"
-  (let ((key (car strokes))
-	(substrokes (cdr strokes))
-	(subsubstrokes (nthcdr 2 strokes)))
-    (cond (subsubstrokes
-	   (tcode-set-action (if (consp table)
-				 (cdr (assq key table))
-			       (aref table key))
-			     substrokes
-			     value))
-	  (substrokes
-	   (cond ((or (and (char-or-string-p table)
-			   (not (stringp table)))
-		      (null table))
-		  (list key (tcode-set-action nil substrokes value)))
-		 ((vectorp table)
-		  (aset table key
-			(tcode-set-action (aref table key) substrokes value))
-		  table)
-		 (t
-		  (let ((orig table))
-		    (if (null (setq table (assq key table)))
-			(nconc orig
-			       (list (list key
-					   (tcode-set-action
-					    nil substrokes value))))
-		      (setcdr table
-			      (tcode-set-action (cdr table) substrokes value))
-		      table)))))
-	  (t
-	   ;; add key
-	   (if (listp table)
-	       (cond ((null table)
-		      (cons key value))
-		     ((and (char-or-string-p (car table))
-			   (not (stringp (car table)))
-			   (not (consp (cdr table))))
-		      (list table (cons key value)))
-		     (t
-		      (let ((old (assq key table)))
-			(while old
-			  (setq table (delq old table)
-				old (assq key table)))
-			(if (null table)
-			    (cons key value)
-			  (nconc (list (cons key value)) table)))))
+;; pointer := symbol | (vector . pos) | (key . value)
+(defun tcode-pointer-ref (pointer)
+  (cond ((symbolp pointer)
+	 (symbol-value pointer))
+	((and (consp pointer) (vectorp (car pointer)))
+	 (aref (car pointer) (cdr pointer)))
+	(t (cdr pointer))))
+
+(defun tcode-pointer-set (pointer value)
+  (cond ((symbolp pointer)
+	 (set pointer value))
+	((and (consp pointer) (vectorp (car pointer)))
+	 (aset (car pointer) (cdr pointer) value))
+	(t (setcdr pointer value))))
+
+(defun tcode-set-action (table-pointer strokes value)
+  "TABLE-POINTER 中の、キー入力 STROKES に相当する所に VALUE を設定する。"
+  (let ((table (tcode-pointer-ref table-pointer))
+	(key (car strokes)))
+    (unless (consp strokes)
+      (error "STROKES must be a non-null list: %s" strokes))
+    (unless (natnump key)
+      (error "KEY must be a non-negative integer: %s" key))
+    (unless (< key  tcode-key-num)
+      (error "KEY must be less than %s: %s" tcode-key-num key))
 	     (if (vectorp table)
 		 (progn
+	  (unless (< key (length table))
+	    (setq table (vconcat table (make-vector (- key -1 (length table))
+						    nil)))
+	    (tcode-pointer-set table-pointer table))
+	  (if (null (cdr strokes))
 		   (aset table key value)
-		   table)
-	       (list (cons key value))))))))
+	    (tcode-set-action (cons table key) (cdr strokes) value)))
+      (let ((cell (assq key table)))
+	(unless cell
+	  (setq cell (list key))
+	  (tcode-pointer-set table-pointer (cons cell table)))
+	(if (null (cdr strokes))
+	    (setcdr cell value)
+	  (tcode-set-action cell (cdr strokes) value))
+	))))
 
 (defun tcode-set-action-to-table (strokes value)
   "コード入力用の内部テーブルに入力列 STROKES に対する VALUE を設定する。
@@ -940,22 +956,23 @@ ARG が nil でないとき、ARG 番目の組に切り替える。"
 キーの番地を指定すると、最後に SPC を押したときの動作を設定する。"
   (cond ((consp strokes)
 	 (tcode-set-stroke-property value strokes)
-	 (tcode-set-action tcode-table strokes value))
+	 (tcode-set-action 'tcode-table strokes value))
 	((and (char-or-string-p strokes)
 	      (not (stringp strokes)))
 	 (unless tcode-another-table
-	   (setq tcode-another-table (make-vector 40 nil)))
+	   (setq tcode-another-table (make-vector (max 40 strokes) nil)))
 	 (aset tcode-another-table strokes value))
+	((null strokes)
+	 (setq tcode-table value))
 	(t
 	 (error "入力列の指定が無効です。"))))
 
-(defun tcode-load-table (filename)
-  (run-hooks 'tcode-before-load-table-hook)
-  (let ((k1 0) k2 newval char)
+(defun tcode-load-table-1 (filename &optional prefix)
+  (let ((k1 0) k2 newval char new-table)
     (load filename)
-    (setq tcode-table (make-vector 40 nil))
+    (setq new-table (make-vector 40 nil))
     (while (< k1 40)
-      (aset tcode-table k1 (make-vector 40 nil))
+      (aset new-table k1 (make-vector 40 nil))
       (setq k1 (1+ k1)))
     (setq k1 0)
     (while (< k1 40)
@@ -969,25 +986,36 @@ ARG が nil でないとき、ARG 番目の組に切り替える。"
 	  (while (< k2 40)
 	    (unless (memq (setq char (aref newval k2))
 			  tcode-non-2-stroke-char-list)
-	      (aset (aref tcode-table k2) k1 char))
+	      (aset (aref new-table k2) k1 char))
 	    (setq k2 (1+ k2)))))
       (setq k1 (1+ k1)))
     (setq tcode-tbl nil)		; free
     ;; 'stroke property を入れる。
-    (setq tcode-stroke-table (and (> tcode-stroke-table-size 0)
-				  (make-vector tcode-stroke-table-size 0)))
-    (tcode-set-stroke-property tcode-table nil t)
+    (tcode-set-action-to-table prefix new-table)
+    (tcode-set-stroke-property new-table nil t prefix)
     ;; コマンドをテーブルに登録する。
     (mapcar (lambda (elm)
-	      (tcode-set-action-to-table (car elm) (cdr elm)))
+	      (tcode-set-action-to-table (append prefix (car elm)) (cdr elm)))
 	    tcode-special-commands-alist)
     (setq tcode-special-commands-alist nil) ; free
+    ))
+
+(defun tcode-load-table (filename)
+  (setq tcode-key-num 40
+	tcode-ext-keys nil)
+  (run-hooks 'tcode-before-load-table-hook)
+  (setq tcode-stroke-table (and (> tcode-stroke-table-size 0)
+				(make-vector tcode-stroke-table-size 0)))
+  (tcode-load-table-1 filename)
+  (mapcar (lambda (x) (tcode-load-table-1 (nth 1 x)
+					  (car x)))
+	  tcode-special-prefix-alist)
     (if (get-buffer tcode-stroke-buffer-name)
 	(kill-buffer tcode-stroke-buffer-name))
     (run-hooks 'tcode-after-load-table-hook)
     (tcode-bushu-init 1)
     (tcode-clear)
-    (tcode-mode-line-redisplay)))
+  (tcode-mode-line-redisplay))
 
 (defun tcode-encode (char)
   "文字CHARを打ち方(キーのリスト)に変換する。直接入力できなければnilを返す。"

@@ -268,6 +268,22 @@ FOR-HELPがnilでない場合は、直接入力できる字に分解する。"
 		     'tcode-bushu-less-p))
 	      (cons kanji nil)))))))
 
+(defun tcode-stroke-prefix-match (stroke)
+  (let ((l tcode-special-prefix-alist)
+	stroke1 stroke2 ret)
+    (while l
+      (setq stroke1 (car (car l))
+	    stroke2 stroke)
+      (while (and stroke1 stroke2
+		  (eq (car stroke1) (car stroke2)))
+	(setq stroke1 (cdr stroke1)
+	      stroke2 (cdr stroke2)))
+      (if (null stroke1)
+	  (setq ret (cons (car l) stroke2)
+		l nil)
+	(setq l (cdr l))))
+    ret))
+
 (defun tcode-stroke-to-string (stroke)
   "STROKE を表す短い文字列を返す。
 `tcode-stroke-to-string-opener'で始まり、
@@ -282,6 +298,10 @@ FOR-HELPがnilでない場合は、直接入力できる字に分解する。"
   (if (functionp tcode-stroke-to-string-option)
       (funcall tcode-stroke-to-string-option stroke)
     (concat tcode-stroke-to-string-opener
+	    (let ((dat (tcode-stroke-prefix-match stroke)))
+	      (when dat
+		(setq stroke (cdr dat))
+		(nth 2 (car dat))))
 	    (mapconcat
 	     (cond ((eq t tcode-stroke-to-string-option)
 		    (lambda (addr) (char-to-string (tcode-key-to-char addr))))
@@ -408,9 +428,29 @@ FOR-HELPがnilでない場合は、直接入力できる字に分解する。"
 (defun tcode-get-key-location (address)
   (cons (/ address 10) (1+ (% address 10))))
 
+(defun tcode-key-to-help-string (key)
+  (let ((c (tcode-key-to-char key)))
+    (if (= c 32) "SPC" (char-to-string c))))
+
 (defun tcode-draw-stroke-for-char (stroke)
   "STROKE の打ち方を表す図を描く。"
-  (let ((draw-data (tcode-make-drawing-data stroke))
+  (let* ((data (tcode-stroke-prefix-match stroke))
+	 (draw-data
+	  (if (null data)
+	      (tcode-make-drawing-data stroke)
+	    (let ((tcode-help-first-stroke
+		   (or (nth 3 (car data)) tcode-help-first-stroke))
+		  (tcode-help-second-stroke
+		   (or (nth 4 (car data)) tcode-help-second-stroke))
+		  (tcode-help-double-stroke
+		   (or (nth 5 (car data)) tcode-help-double-stroke))
+		  (tcode-help-third-stroke
+		   (or (nth 6 (car data)) tcode-help-third-stroke))
+		  (tcode-help-forth-stroke
+		   (or (nth 7 (car data)) tcode-help-forth-stroke))
+		  (tcode-help-another-double-stroke
+		   (or (nth 8 (car data)) tcode-help-another-double-stroke)))
+	      (tcode-make-drawing-data (cdr data)))))
 	(i 0))
     (insert "\
                       \n\
@@ -422,7 +462,9 @@ FOR-HELPがnilでない場合は、直接入力できる字に分解する。"
 	     (addr (car datum))
 	     (char (car (cdr datum)))
 	     (str (car (cdr (cdr datum)))))
+	(if (< addr 40)
 	(tcode-help-stroke (tcode-get-key-location addr) char)
+	  (tcode-key-to-help-string addr))
 	(goto-line (if (= (mod i 2) 0) 3 4))
 	(end-of-line)
 	(insert "     " char "…第" str "打鍵")
@@ -563,9 +605,13 @@ FOR-HELPがnilでない場合は、直接入力できる字に分解する。"
 ;;;
 
 ;;;###autoload
-(defun tcode-show-tables (first second)
+(defun tcode-show-tables (first second &optional prefix)
   (interactive)
-  (let* ((buf (tcode-draw-tables first second)))
+  (unless prefix
+    (let ((dat (tcode-stroke-prefix-match
+		(mapcar 'tcode-char-to-key tcode-this-command-keys))))
+      (if dat (setq prefix (car (car dat))))))
+  (let* ((buf (tcode-draw-tables first second nil prefix)))
     (if tcode-auto-zap-table
 	(save-window-excursion
 	  (tcode-display-help-buffer buf)
@@ -577,11 +623,11 @@ FOR-HELPがnilでない場合は、直接入力できる字に分解する。"
 	(set-buffer orig-buf))
       (tcode-display-help-buffer buf))))
 
-(defun tcode-make-table-line (k1 k2)
+(defun tcode-make-table-line (k1 k2 &optional prefix)
   "subroutine of `tcode-make-LR-block'."
   (let ((i1 k1) (j 0) c)
     (while (< j 5)
-      (let ((a (cdr (tcode-decode (list i1 k2)))))
+      (let ((a (cdr (tcode-decode (append prefix (list i1 k2))))))
 	(setq c (if (null a)
 		    "■"
 		  (tcode-action-to-printable a)))
@@ -590,7 +636,7 @@ FOR-HELPがnilでない場合は、直接入力できる字に分解する。"
       (setq j (1+ j)
 	    i1 (1+ i1)))))
 
-(defun tcode-make-LR-block (k1-start k2-start)
+(defun tcode-make-LR-block (k1-start k2-start &optional prefix)
   "subroutine of `tcode-insert-stroke-file'."
   (or tcode-help-draw-top-keys
       (setq k1-start (+ k1-start 10)
@@ -607,7 +653,7 @@ FOR-HELPがnilでない場合は、直接入力できる字に分解する。"
 	(insert "\n  ")
 	(setq x 0)
 	(while (< x 5)
-	  (tcode-make-table-line k1 k2)
+	  (tcode-make-table-line k1 k2 prefix)
 	  (insert "  ")
 	  (setq x (1+ x))
 	  (setq k2 (1+ k2)))
@@ -632,16 +678,25 @@ The file is updated if it is older than tcode table."
     (tcode-make-LR-block 5 0)
     (insert "\nRR\n")
     (tcode-make-LR-block 5 5)
+    (mapcar
+     (lambda (x)
+       (insert "\n" (nth 2 x) "LL\n") (tcode-make-LR-block 0 0 (car x))
+       (insert "\n" (nth 2 x) "LR\n") (tcode-make-LR-block 0 5 (car x))
+       (insert "\n" (nth 2 x) "RL\n") (tcode-make-LR-block 5 0 (car x))
+       (insert "\n" (nth 2 x) "RR\n") (tcode-make-LR-block 5 5 (car x)))
+     tcode-special-prefix-alist)
     (if (file-writable-p tcode-stroke-file-name)
 	(write-file tcode-stroke-file-name))))
 
-(defun tcode-draw-tables (first second &optional force)
+(defun tcode-draw-tables (first second &optional force prefix)
   "Draw tcode stroke tables.
 FIRST corresponds to the first stroke.  If nil, then left, else right.
 SECOND to the second stroke.  If nil, then left, else right.
 If FORCE is non-nil, make new table."
-  (let ((buf (get-buffer-create tcode-stroke-buffer-name))
-	(str (concat "^" (if first "R" "L") (if second "R" "L"))))
+  (let* ((dat (tcode-stroke-prefix-match prefix))
+	 (buf (get-buffer-create tcode-stroke-buffer-name))
+	 (str (concat "^" (if dat (regexp-quote (nth 2 (car dat))))
+		      (if first "R" "L") (if second "R" "L"))))
     (save-excursion
       (set-buffer buf)
       (widen)
@@ -660,7 +715,7 @@ If FORCE is non-nil, make new table."
 	      (narrow-to-region top end)
 	      buf))
 	(tcode-insert-stroke-file force)
-	(tcode-draw-tables first second)))))
+	(tcode-draw-tables first second prefix)))))
 
 (provide 'tc-help)
 

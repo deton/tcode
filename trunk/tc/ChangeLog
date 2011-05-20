@@ -1,3 +1,9 @@
+2004-01-26  Masayuki Ataka  <masayuki.ataka@gmail.com>
+
+	* lisp/try-tbl.el (tcode-key-translation-rule-table): デフォールト
+	値の第 0 要素を 40 にセットした。
+	Suggested by TAKAHASHI Naoto <ntakahas@m17n.org>
+
 2003-12-16  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
 	* lisp/Makefile.am (COMMON_EL_FILES): Try-Code と TT-Code のテーブ

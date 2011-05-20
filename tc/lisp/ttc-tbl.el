@@ -210,7 +210,7 @@
 (setq eelll-text "EELLLTXT")
 
 (setq tcode-special-prefix-alist
-      '(((26 23) "ttc-rtbl" "¢¥" "¢¥" "¡û" "¢§")
-	((23 26) "ttc-ltbl" "¢£" "¢£" "¡û" "¢¡")))
+      '(((26 23) "ttc-rtbl" "¢£" "¢£" "¡û" "²ó")
+	((23 26) "ttc-ltbl" "¢¥" "¢¥" "¡û" "ÉÊ")))
 
 ;;; ttc-tbl.el ends here

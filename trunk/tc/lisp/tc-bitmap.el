@@ -64,10 +64,18 @@
 
 (defun tc-bitmap-stroke-to-string (stroke)
   (let ((lis (list tcode-stroke-to-string-opener)))
+    (let ((dat (tcode-stroke-prefix-match stroke)))
+      (when dat
+	(setq stroke (cdr dat))
+	(setcdr lis (list (nth 2 (car dat))))))
     (while stroke
+      (if (< (car stroke) 40)
       (setq lis (cons (tc-bitmap-get-key-1 (car stroke) (nth 1 stroke)) lis)
 	    lis (cons tcode-stroke-to-string-separator lis)
-	    stroke (cdr (cdr stroke))))
+		stroke (cdr (cdr stroke)))
+	(setq lis (cons (tcode-key-to-help-string (car stroke)) lis)
+	      lis (cons tcode-stroke-to-string-separator lis)
+	      stroke (cdr stroke))))
     (setq lis (cons tcode-stroke-to-string-closer (cdr lis)))
     (apply (function concat) (nreverse lis))))
 

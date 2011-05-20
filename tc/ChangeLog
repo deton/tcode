@@ -1,3 +1,11 @@
+2004-02-07  Masayuki Ataka  <masayuki.ataka@gmail.com>
+
+	* lisp/ttc-tbl.el (tcode-special-prefix-alist): TT-Code のヘルプ・
+	プレフィックスを変更した。
+	第一拡張表 ▲ / ○ / ▲
+	第二拡張表 ▽ / ○ / ▽
+	Suggested by YUSE Y <hiyuse@nifty.com>
+
 2004-02-02  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
 	* lisp/try-tbl.el (tcode-special-prefix-alist):

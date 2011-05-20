@@ -114,6 +114,8 @@ nemacs, mule-1, mule-2, mule-3, mule-4, xemacsのいずれか。")
 ;;;; package
 (defvar tcode-package-name-alist
   '(("japanese-T-Code" . "tc-tbl")
+    ("japanese-TT-Code" . "ttc-tbl")
+    ("japanese-Try-Code" . "try-tbl")
     ("japanese-TUT-Code" . "tutc-tbl"))
   "名前とテーブル名との対応")
 

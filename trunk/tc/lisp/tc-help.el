@@ -715,7 +715,7 @@ If FORCE is non-nil, make new table."
 	      (narrow-to-region top end)
 	      buf))
 	(tcode-insert-stroke-file force)
-	(tcode-draw-tables first second prefix)))))
+	(tcode-draw-tables first second nil prefix)))))
 
 (provide 'tc-help)
 

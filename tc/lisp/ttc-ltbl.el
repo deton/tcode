@@ -51,7 +51,7 @@
 
 (setq tcode-special-commands-alist
       '(((23 26) . tcode-mazegaki-begin-conversion) ; fj: 交ぜ書き変換
-	;; ▽[LL | LR | RL | RR] 表
+	;; ■[LL | LR | RL | RR] 表
 	((0 0) . (lambda () (tcode-show-tables nil nil)))
 	((0 9) . (lambda () (tcode-show-tables nil t)))
 	((9 0) . (lambda () (tcode-show-tables t nil)))

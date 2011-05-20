@@ -1,3 +1,11 @@
+2003-12-16  Masayuki Ataka  <masayuki.ataka@gmail.com>
+
+	* lisp/Makefile.am (COMMON_EL_FILES): Try-Code と TT-Code のテーブ
+	ル・ファイルを make の対象にした。
+	* lisp/Makefile.in (COMMON_EL_FILES): lisp/Makefile.am から自動生成。
+	Reported by YUSE Y <hiyuse@nifty.com>
+	Suggested by TAKAHASHI Naoto <ntakahas@m17n.org>
+
 2003-12-12  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
 	* lisp/ttc-tbl.el (tcode-special-prefix-alist): TT-Code の右表の打

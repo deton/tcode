@@ -3,6 +3,7 @@
 	* lisp/eelll.el (eelll-use-image): Removed.
 	(eelll-setup-lesson, eelll-return): eelll-use-image に代わりに
 	tcode-help-with-real-keys を使う。
+	(eelll-frame-parameters): Meadow でも EELLL を使えるようにした。
 	Patch by YAGI Tatsuya <ynyaaa@ybb.ne.jp>
 
 	* lisp/tc-is22.el (tcode-isearch-search-fun): Removed.

@@ -103,9 +103,13 @@
 (when (and (fboundp 'defface)
 	   window-system)
     (defface eelll
-      '((t (:font "-*-fixed-medium-r-normal-*-16-*-*-*-*-*-*-*"
+      (if (featurep 'meadow)
+	  '((t (:font "default"
 		  :foreground "black"
 		  :background "white")))
+	'((t (:font "-*-fixed-medium-r-normal-*-16-*-*-*-*-*-*-*"
+		    :foreground "black"
+		    :background "white"))))
       "*ビットマップを使った EELLL でのヘルプのフェイス"
       :group 'eelll))
 
@@ -150,8 +154,11 @@
 			    'eelll-remove-frame))
 ;;; for `eelll-other-frame'
 (defvar eelll-frame-parameters 
+  (if (featurep 'meadow)
+      '((name . "EELLL")
+	(font . "default"))
   '((name . "EELLL")
-    (font . "-*-fixed-medium-r-normal-*-16-*-*-*-*-*-*-*"))
+      (font . "-*-fixed-medium-r-normal-*-16-*-*-*-*-*-*-*")))
   "*`eelll-other-frame'で用いるフレームのパラメータ。")
 (defvar eelll-frame nil)
 

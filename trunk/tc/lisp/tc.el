@@ -300,6 +300,7 @@ nil のときは `tcode-mode' から得る。")
     electric-c-semi
     electric-c-terminator
     electric-perl-terminator
+    org-self-insert-command
     perl-electric-terminator
     self-insert-command
     sgml-slash

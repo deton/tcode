@@ -228,7 +228,7 @@ BODY should be a list of lisp expressions."
 ;;;
 ;;; Fix incompatibilities between 18 and 19.
 ;;;
-(if (string-match "^\\(19\\|2[01]\\)" emacs-version)
+(if (string-match "^\\(19\\|2[012]\\)" emacs-version)
     (progn
       (defun tcode-redo-command (ch)
 	"キー CH を現在のキーマップで再実行する"

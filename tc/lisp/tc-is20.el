@@ -1,4 +1,4 @@
-;;; tc-is20.el --- T-Code isearch modification for Emacs 20.*.
+;;; tc-is20.el --- T-Code isearch modification for Emacs 2[01].*.
 
 ;; Copyright (C) 1994,97-2001 Kaoru Maeda, Mikihiko Nakao and KITAJIMA Akira
 

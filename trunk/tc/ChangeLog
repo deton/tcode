@@ -1,5 +1,8 @@
 2005-02-19  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
+	* lisp/tc-is20.el: ヘッダーを修正。tc-is20.el が Emacs 20/21 で使わ
+	れることを明記した。
+
 	* lisp/tc-is22.el: ヘッダー部分が tc-is20.el と同じだったので修正した。
 	Suggested by TAKAHASHI Naoto <ntakahas@m17n.org>
 	(isearch-printing-char, isearch-yank-word, isearch-repeat)

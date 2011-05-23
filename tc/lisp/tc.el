@@ -333,6 +333,10 @@ nil のときは `tcode-mode' から得る。")
 ;;
 ;; キー配置・キーマップの設定
 ;;
+(defvar tcode-key-layout "qwerty"
+  "*Tコードを用いるキーの配置。
+`tcode-key-layout-list' に登録されている名前を設定する。")
+
 (defvar tcode-key-layout-list
   '(("qwerty" . (?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?0
 		    ?q ?w ?e ?r ?t ?y ?u ?i ?o ?p
@@ -421,6 +425,7 @@ nil のときは `tcode-mode' から得る。")
 	    (aset table (- (car l) ? ) i))
 	(setq i (1+ i)
 	      l (cdr l))))
+    (setq tcode-key-layout layout)
     (setq tcode-key-translation-rule-table table)
     list))
 
@@ -1009,6 +1014,7 @@ ARG が nil でないとき、ARG 番目の組に切り替える。"
 (defun tcode-load-table (filename)
   (setq tcode-key-num 40
 	tcode-ext-keys nil)
+  (tcode-set-key-layout tcode-key-layout)
   (run-hooks 'tcode-before-load-table-hook)
   (setq tcode-stroke-table (and (> tcode-stroke-table-size 0)
 				(make-vector tcode-stroke-table-size 0)))

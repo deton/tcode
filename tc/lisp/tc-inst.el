@@ -59,10 +59,9 @@
 	    (insert "(setq tcode-key-layout-list '"
 		    (prin1-to-string (cons layout tcode-key-layout-list))
 		    ")\n"))
-	  (insert "(add-hook 'tcode-ready-hook "
-		  "'(lambda () (tcode-set-key-layout \"" 
+	  (insert "(setq tcode-key-layout \"" 
 		  (car layout)
-		  "\")))\n"))
+		  "\")\n"))
 	(write-file tcode-init-file-name))
       (setq tcode-data-directory dir)
       (message "詳しい設定法はInfoのtcの項目を見てください。"))))

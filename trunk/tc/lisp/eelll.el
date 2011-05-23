@@ -115,18 +115,6 @@
 
 (defvar eelll-previous-error-rate 0)
 
-(defvar eelll-stroke-to-string-function
-  (if (>= emacs-major-version 21)
-      'tc-image-stroke-to-string
-    'tc-bitmap-stroke-to-string))
-(defvar eelll-stroke-to-string-column
-  (lambda (stroke)
-    (let ((dat (tcode-stroke-prefix-match stroke)))
-      (if dat
-	  (+ (string-width (nth 2 (car dat)))
-	     (1- (* 6 (/ (1+ (length (cdr stroke))) 2))))
-	(1- (* 6 (/ (1+ (length stroke)) 2)))))))
-
 (defvar eelll-original-window-configuration nil)
 (defvar eelll-window-configuration nil)
 
@@ -665,6 +653,22 @@ Emacs内部のcompletionの実装上の問題のため、「?」を
 
 ;;;; ビットマップ表示
 
+(defun eelll-calc-column (stroke)
+  (let ((dat (tcode-stroke-prefix-match stroke)))
+    (if dat
+	(+ (string-width (nth 2 (car dat)))
+	   (1- (* 6 (/ (1+ (length (cdr stroke))) 2))))
+      (1- (* 6 (/ (1+ (length stroke)) 2))))))
+
+(put 'tc-image-stroke-to-string 'column-function 'eelll-calc-column)
+(put 'tc-bitmap-stroke-to-string 'column-function 'eelll-calc-column)
+
+(defun eelll-stroke-to-string-column (stroke s)
+  (let ((fun (get tcode-stroke-to-string-option 'column-function)))
+    (if fun
+	(funcall fun stroke)
+      (string-width s))))
+
 (defun eelll-insert-with-face (str)
   (let ((beg (point)))
     (insert str)
@@ -683,8 +687,8 @@ Emacs内部のcompletionの実装上の問題のため、「?」を
 			   (list (- (length tcode-another-table)
 				    (length another)))))))
 	 (s (if stroke
-		(funcall eelll-stroke-to-string-function stroke)))
-	 (ex-col (if s (funcall eelll-stroke-to-string-column stroke) 5)))
+		(tcode-stroke-to-string stroke)))
+	 (ex-col (if s (eelll-stroke-to-string-column stroke s) 5)))
     (if (<= (+ help-column (max ex-col 5) 1)
 	    (* (frame-width) 0.60))
 	(setq help-column (+ help-column (max ex-col 5) 1))
@@ -714,9 +718,6 @@ Emacs内部のcompletionの実装上の問題のため、「?」を
 (defun eelll-insert-bitmap-help (string)
   (let ((chars (string-to-list string))
 	(help-column 0)
-	(tcode-stroke-to-string-separator "-")
-	(tcode-stroke-to-string-opener "")
-	(tcode-stroke-to-string-closer "")
 	(beg (progn 
 	       (insert "\n")
 	       (point))))

@@ -217,9 +217,10 @@ Tコードモード中のキー操作は次のとおり。
 (setq tcode-special-prefix-alist
       '(((40) "try-etbl" "■" "■" "□" "回")))
 
-(setq tcode-stroke-to-string-option 'try-code-stroke-to-string
-      eelll-stroke-to-string-function 'try-code-stroke-to-string
-      eelll-stroke-to-string-column 'try-code-stroke-to-string-column)
+(setq tcode-stroke-to-string-option 'try-code-stroke-to-string)
+
+(put 'try-code-stroke-to-string 'column-function
+     'try-code-stroke-to-string-column)
 
 (defvar try-code-stroke-to-string-use-image nil)
 
@@ -229,12 +230,14 @@ Tコードモード中のキー操作は次のとおり。
 		  (tcode-mule-3-p)
 		  (tcode-mule-4-p))
 	      window-system)
+	 (autoload 'tc-bitmap-stroke-to-string "tc-bitmap")
 	 'tc-bitmap-stroke-to-string)
 	((and (tcode-mule-4-p)
 	      (> emacs-major-version 20)
 	      (display-images-p))
+	 (autoload 'tc-image-stroke-to-string "tc-image")
 	 'tc-image-stroke-to-string)
-	(t t)))
+	(t nil)))
 
 (defun try-code-stroke-to-string (stroke)
   (let ((tcode-stroke-to-string-option try-code-stroke-to-string-option)

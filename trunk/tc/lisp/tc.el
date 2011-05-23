@@ -163,6 +163,25 @@ nilの時にはその逆。" :type 'boolean :group 'tcode)
 (defvar tcode-verbose-stroke-list '(? )
   "文字入力の途中で、今までの入力をすべてそのまま挿入するキーのリスト")
 
+(defvar tcode-stroke-to-string-option-default
+  (cond ((and (tcode-mule-4-p)
+	      (> emacs-major-version 20)
+	      (display-images-p))
+	 (autoload 'tc-image-stroke-to-string "tc-image")
+	 'tc-image-stroke-to-string)
+	((and (featurep 'bitmap)
+	      (or (tcode-mule-2-p)
+		  (tcode-mule-3-p)
+		  (tcode-mule-4-p))
+	      window-system)
+	 (autoload 'tc-image-stroke-to-string "tc-bitmap")
+	 'tc-bitmap-stroke-to-string)
+	(t nil))
+  "*`tcode-stroke-to-string-option' の初期値")
+
+(defvar tcode-stroke-to-string-option tcode-stroke-to-string-option-default
+  "*`tcode-stroke-to-string'を制御する変数")
+
 ;;
 ;; Global Variables
 ;;
@@ -1014,6 +1033,9 @@ ARG が nil でないとき、ARG 番目の組に切り替える。"
 (defun tcode-load-table (filename)
   (setq tcode-key-num 40
 	tcode-ext-keys nil)
+  (setq tcode-special-prefix-alist nil)
+  (setq tcode-stroke-to-string-option
+	tcode-stroke-to-string-option-default)
   (tcode-set-key-layout tcode-key-layout)
   (run-hooks 'tcode-before-load-table-hook)
   (setq tcode-stroke-table (and (> tcode-stroke-table-size 0)

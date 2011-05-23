@@ -57,11 +57,9 @@ nil の場合では見つからないような場合でも、non-nil にすれば見つかる場合が
 (defvar tcode-help-with-real-keys nil
   "* nilでない場合、表形式ではなく、キー入力順形式によるへルプ表示を行う。")
 
-(defvar tcode-stroke-to-string-option t
-  "*`tcode-stroke-to-string'を制御する変数")
 (defvar tcode-stroke-to-string-opener ""
   "*`tcode-stroke-to-string'で使われる開始文字列")
-(defvar tcode-stroke-to-string-separator ""
+(defvar tcode-stroke-to-string-separator "-"
   "*`tcode-stroke-to-string'で使われる分割文字列")
 (defvar tcode-stroke-to-string-closer ""
   "*`tcode-stroke-to-string'で使われる終了文字列")

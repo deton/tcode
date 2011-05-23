@@ -1,5 +1,19 @@
 2007-03-06  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
+	* lisp/tc.el (tcode-stroke-to-string-option-default)
+	(tcode-stroke-to-string-option): New variables.
+	(tcode-load-table): Use it.
+	* lisp/tc-help.el (tcode-stroke-to-string-option): Removed.
+	(tcode-stroke-to-string-separator): デフォールト値を "" から "-" へ変更した。
+	* lisp/eelll.el (eelll-stroke-to-string-function)
+	(eelll-stroke-to-string-column): Removed.
+	(eelll-calc-column, eelll-stroke-to-string-column): New functions,
+	use them instead of above functions.
+	(eelll-put-help-char, eelll-insert-bitmap-help): Likewise.
+	* lisp/try-tbl.el (tcode-stroke-to-string-option)
+	(try-code-stroke-to-string-option): Use it.
+	Patch by YAGI Tatsuya <ynyaaa@ybb.ne.jp>
+
 	* lisp/tc.el (tcode-load-table): 異なる漢直入力に切り替えても問題な
 	いようにする
 	* lisp/eelll.el (eelll-use-image): Removed.

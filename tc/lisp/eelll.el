@@ -150,6 +150,7 @@
   "*`eelll-other-frame'で用いるフレームのパラメータ。")
 (defvar eelll-frame nil)
 
+(defvar eelll-comment-line nil)
 (defvar eelll-current-text nil)
 (defvar eelll-random-mode nil)
 (defvar eelll-random-max-line 4
@@ -239,6 +240,10 @@ eelll-text-line:	印字イメージ"
   (save-excursion
     (set-buffer eelll-current-text-buffer)
     (skip-chars-forward " \t\n\f" (point-max))
+    (let ((p (point)))
+      (while (looking-at "^;")
+	(forward-line 1))
+      (setq eelll-comment-line (buffer-substring p (point))))
     (and (not (eobp))
 	 (let ((p (point)))
 	   (forward-line 1)
@@ -924,8 +929,8 @@ Emacs内部のcompletionの実装上の問題のため、「?」を
     (when tcode-help-with-real-keys
       (insert "\n")
       (if (>= eelll-previous-error-rate eelll-display-help-threshold)
-	  (eelll-insert-bitmap-help eelll-text-line)))
-    (insert "\n\n" eelll-text-line "\n")
+	  (eelll-insert-line-help eelll-text-line)))
+    (insert "\n" eelll-comment-line eelll-text-line "\n")
     (eelll-redisplay)))
 
 (defun eelll-redisplay ()

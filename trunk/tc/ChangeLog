@@ -1,3 +1,12 @@
+2005-02-19  Masayuki Ataka  <masayuki.ataka@gmail.com>
+
+	* lisp/tc-is22.el: ヘッダー部分が tc-is20.el と同じだったので修正した。
+	Suggested by TAKAHASHI Naoto <ntakahas@m17n.org>
+	(isearch-printing-char, isearch-yank-word, isearch-repeat)
+	(tcode-isearch-postfix-mazegaki): Delete trailing white spaces.
+	(isearch-yank-word, isearch-yank-string, isearch-repeat)
+	(isearch-toggle-tcode): 小さなコード修正。
+
 2005-02-14  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
 	* lisp/tc-is22.el: New file。Emacs 22 用 isearch コード。

@@ -1,5 +1,8 @@
 2005-02-19  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
+	* acinclude.m4: tc-is22.el に関するコードを追加した。
+	* lisp/guess (guess): Emacs 22 の判定コードを追加した。
+
 	* lisp/tc-is20.el: ヘッダーを修正。tc-is20.el が Emacs 20/21 で使わ
 	れることを明記した。
 

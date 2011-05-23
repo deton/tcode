@@ -277,5 +277,4 @@ Tコードモード中のキー操作は次のとおり。
 		 (1- (* 6 (/ (1+ (length (cdr stroke))) 2))))
 	     (string-width x)))))))
 
-(aset tcode-key-translation-rule-table 0 40)
 ;;; try-tbl.el ends here

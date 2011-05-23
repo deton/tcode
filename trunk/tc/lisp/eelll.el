@@ -94,17 +94,6 @@
     1)
   "*EEELLの打ち方を表示するときのウィンドウの高さのマージン")
 
-(defvar eelll-use-image (or (and (featurep 'bitmap)
-				 (or (tcode-mule-2-p)
-				     (tcode-mule-3-p)
-				     (tcode-mule-4-p))
-				 window-system)
-			    (and (tcode-mule-4-p)
-				 (> emacs-major-version 20)
-				 (display-images-p)))
-  "* ビットマップを使ったヘルプを表示するかどうか。
-ビットマップを表示できるウィンドウシステム上でのみ使用可能。")
-
 (defvar eelll-by-text-dummy-char "・"
   "*直接入力できない文字の代わりに入力させる文字列")
 
@@ -505,7 +494,7 @@ EELLL 内ではほとんどのコマンドが禁止されています。
 
 (defun eelll-help ()
   (interactive)
-  (if eelll-use-image
+  (if tcode-help-with-real-keys
       (progn
 	(forward-line -2)
 	(save-restriction
@@ -846,7 +835,7 @@ Emacs内部のcompletionの実装上の問題のため、「?」を
   (widen) 
   (erase-buffer)
   (delete-other-windows)
-  (if eelll-use-image
+  (if tcode-help-with-real-keys
       (if (>= emacs-major-version 21)
 	  (require 'tc-image)
 	(require 'tc-bitmap))
@@ -897,7 +886,7 @@ Emacs内部のcompletionの実装上の問題のため、「?」を
 			       (string-to-list (car res))))))
 	    (when wrong-chars
 	      (insert "\n\n[間違えた字]")
-	      (if eelll-use-image
+	      (if tcode-help-with-real-keys
 		  (eelll-insert-bitmap-help
 		   (mapconcat 'char-to-string wrong-chars nil))
 		(insert "=> " (mapconcat 'char-to-string wrong-chars nil)))))
@@ -909,7 +898,7 @@ Emacs内部のcompletionの実装上の問題のため、「?」を
     (save-excursion
       (set-buffer (get-buffer-create " *eelll: strokes*"))
       (widen) (erase-buffer))
-    (when eelll-use-image
+    (when tcode-help-with-real-keys
       (insert "\n")
       (if (>= eelll-previous-error-rate eelll-display-help-threshold)
 	  (eelll-insert-bitmap-help eelll-text-line)))

@@ -1,5 +1,10 @@
 2007-03-06  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
+	* lisp/eelll.el (eelll-use-image): Removed.
+	(eelll-setup-lesson, eelll-return): eelll-use-image に代わりに
+	tcode-help-with-real-keys を使う。
+	Patch by YAGI Tatsuya <ynyaaa@ybb.ne.jp>
+
 	* lisp/tc-is22.el (tcode-isearch-search-fun): Removed.
 	(isearch-search-string): info でも日本語の isearch を可能にした。
 	Reported by Makoto Fujiwara <makoto@ki.nu>

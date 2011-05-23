@@ -1,5 +1,7 @@
 2007-03-06  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
+	* lisp/tc.el (tcode-load-table): 異なる漢直入力に切り替えても問題な
+	いようにする
 	* lisp/eelll.el (eelll-use-image): Removed.
 	(eelll-setup-lesson, eelll-return): eelll-use-image に代わりに
 	tcode-help-with-real-keys を使う。

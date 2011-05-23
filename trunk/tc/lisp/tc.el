@@ -1022,6 +1022,13 @@ ARG が nil でないとき、ARG 番目の組に切り替える。"
   (mapcar (lambda (x) (tcode-load-table-1 (nth 1 x)
 					  (car x)))
 	  tcode-special-prefix-alist)
+  (let ((l tcode-ext-keys)
+	(i 40))
+    (while l
+      (if (car l)
+	  (aset tcode-key-translation-rule-table (- (car l) ? ) i))
+      (setq i (1+ i)
+	    l (cdr l))))
     (if (get-buffer tcode-stroke-buffer-name)
 	(kill-buffer tcode-stroke-buffer-name))
     (run-hooks 'tcode-after-load-table-hook)

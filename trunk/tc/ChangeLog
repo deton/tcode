@@ -1,3 +1,22 @@
+2005-02-14  Masayuki Ataka  <masayuki.ataka@gmail.com>
+
+	* lisp/tc-is22.el: New file。Emacs 22 用 isearch コード。
+	- Emacs 22 系で isearch が動かない不具合の修正
+	- Emacs 22 系で isearch 中の部首変換がエラーになる不具合の修正
+
+	* lisp/tc-is20.el (isearch-search): [2004-10-14] 分の修正をキャンセ
+	ルした。修正コードは tc-is22.el へ。
+
+	* lisp/Makefile.am (lisp_LISP):
+	* lisp/Makefile.in (lisp_LISP): tc-is22.el を make の対象に含めた。
+
+	* lisp/tc-pre.el (tcode-isearch-type):
+	* lisp/tc-pre-base (tcode-isearch-type):
+	* lisp/tc-pre-base.in (tcode-isearch-type): emacs-version が 22 な
+	らば tc-is22.el を使うようにした。
+
+	* lisp/tc-sysdep.el (string-match): Emacs 23 対策コードを追加した。
+
 2005-02-12  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
 	* lisp/tc-sysdep.el: Emacs 22 対策コードを追加した。

@@ -289,7 +289,9 @@ nil のときは `tcode-mode' から得る。")
 (defvar tcode-shift-state nil)
 
 (defvar tcode-input-command-list
-  '(c-electric-semi&comma
+  '(asm-colon
+    asm-comment
+    c-electric-semi&comma
     c-electric-slash
     canna-self-insert-command
     digit-argument

@@ -1,5 +1,11 @@
 ;;; tc-is20u.el -*- Emacs-Lisp; coding:shift_jis -*-
 
+;; Copyright (C) 2005 YAGI Tatsuya <ynyaaa@ybb.ne.jp>
+
+;; Author: YAGI Tatsuya <ynyaaa@ybb.ne.jp>
+;; Maintainer: Masayuki Ataka <masayuki.ataka@gmail.com>
+
+;;; Code:
 (require 'tc-is20)
 
 (defvar tcode-isearch-enable-unification-search t

@@ -1,3 +1,10 @@
+2004-04-05  Masayuki Ataka  <masayuki.ataka@gmail.com>
+
+	* lisp/tc.el (tcode-input-command-list): sql-* モード用対策。
+	sql-magic-semicolon と sql-magic-go を T-Code モードの時は T-Code
+	入力に用いるようにした。
+	Patch by Makoto Fujiwara <makoto@ki.nu>
+
 2004-02-22  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
 	* etc/EELLLTXT.tt: New file。TT-Code 用の EELLLTXT。

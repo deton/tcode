@@ -3,6 +3,8 @@
 	* lisp/eelll.el (eelll, eelll-random): C-u 付きで EELLLTXT を選択で
 	きるようにした。
 	(eelll-completing-read): Likewise.
+	(eelll-comment-line): New variable.
+	(eelll-lesson-line, eelll-return): コメントを表示する。
 	Patch by YAGI Tatsuya <ynyaaa@ybb.ne.jp>
 
 	* etc/EELLLTXT.kenpo: New file。日本国憲法をサンプル・テキストにした EELLLTXT。

@@ -77,7 +77,7 @@ pkgdatadir = @pkgdatadir@
 
 SHELL = /bin/sh
 
-DISTDATA = EELLLTXT EELLLTXT.tut bushu.rev symbol.rev tc-bitmap-8x16
+DISTDATA = EELLLTXT EELLLTXT.tut EELLLTXT.kenpo bushu.rev symbol.rev tc-bitmap-8x16
 
 pkgdata_DATA = $(DISTDATA) bushu.expand bushu.index2
 EXTRA_DIST = $(DISTDATA) mk-bdic

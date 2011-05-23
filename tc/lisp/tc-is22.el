@@ -70,18 +70,11 @@
 ;;;
 ;;; patch to original functions in isearch.el of Emacs 22
 ;;;
-(defun tcode-isearch-search-fun ()
-  (cond (isearch-word
-	 (if isearch-forward
-	     'word-search-forward 'word-search-backward))
-	((or isearch-regexp
-	     (and (boundp 'tcode-isearch-enable-wrapped-search)
-		  tcode-isearch-enable-wrapped-search))
-	 (if isearch-forward
-	     're-search-forward 're-search-backward))
-	(t
-	 (if isearch-forward 'search-forward 'search-backward))))
-(setq isearch-search-fun-function #'tcode-isearch-search-fun)
+(defadvice isearch-search-string (around tcode-handling activate)
+  (let ((isearch-regexp (if (or isearch-word isearch-regexp)
+                            isearch-regexp
+                          tcode-isearch-enable-wrapped-search)))
+    ad-do-it))
 
 (defun isearch-printing-char ()
   "Add this ordinary printing character to the search string and search."

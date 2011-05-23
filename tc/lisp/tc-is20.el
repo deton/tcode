@@ -127,14 +127,16 @@
 	 (setq isearch-invalid-regexp "incomplete input")))
     (error
      ;; stack overflow in regexp search.
-     (setq isearch-invalid-regexp (car (cdr lossage)))))
+     (setq isearch-invalid-regexp (format "%s" lossage))))
 
   (if isearch-success
       nil
     ;; Ding if failed this time after succeeding last time.
-    (and (nth 3 (car isearch-cmds))
+    (and (isearch-success-state (car isearch-cmds))
 	 (ding))
-    (goto-char (nth 2 (car isearch-cmds)))))
+    (if (functionp (isearch-pop-fun-state (car isearch-cmds)))
+        (funcall (isearch-pop-fun-state (car isearch-cmds)) (car isearch-cmds)))
+    (goto-char (isearch-point-state (car isearch-cmds)))))
 
 (defun isearch-printing-char ()
   "Add this ordinary printing character to the search string and search."

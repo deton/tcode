@@ -1,3 +1,8 @@
+2005-12-21  Masayuki Ataka  <masayuki.ataka@gmail.com>
+
+	* lisp/tc-is20u.el: New file。全角と半角を区別せずに検索する。
+	Patch by YAGI Tatsuya <ynyaaa@ybb.ne.jp>
+
 2005-04-01  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
 	* lisp/tc.el (tcode-input-command-list): asm-mode 対策。

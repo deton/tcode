@@ -298,6 +298,7 @@ nil のときは `tcode-mode' から得る。")
     electric-c-semi
     electric-c-terminator
     electric-perl-terminator
+    perl-electric-terminator
     self-insert-command
     sgml-slash
     sql-magic-semicolon

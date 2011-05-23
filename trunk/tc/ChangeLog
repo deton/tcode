@@ -1,3 +1,8 @@
+2004-06-05  Masayuki Ataka  <masayuki.ataka@gmail.com>
+
+	* lisp/tc.el (tcode-input-command-list): perl モード対策。
+	Patch by Makoto Fujiwara <makoto@ki.nu>
+
 2004-04-05  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
 	* lisp/tc.el (tcode-input-command-list): sql-* モード用対策。

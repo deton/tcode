@@ -1,3 +1,8 @@
+2005-04-01  Masayuki Ataka  <masayuki.ataka@gmail.com>
+
+	* lisp/tc.el (tcode-input-command-list): asm-mode 対策。
+	Patch by Makoto Fujiwara <makoto@ki.nu>
+
 2005-02-19  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
 	* acinclude.m4: tc-is22.el に関するコードを追加した。

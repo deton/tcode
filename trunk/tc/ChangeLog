@@ -1,5 +1,10 @@
 2007-03-06  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
+	* lisp/tc-is22.el (tcode-isearch-search-fun): Removed.
+	(isearch-search-string): info でも日本語の isearch を可能にした。
+	Reported by Makoto Fujiwara <makoto@ki.nu>
+	Patch by YAGI Tatsuya <ynyaaa@ybb.ne.jp>
+
 	* lisp/tc.el (tcode-input-command-list): org-mode 対策。
 	Patch by YAGI Tatsuya <ynyaaa@ybb.ne.jp>
 

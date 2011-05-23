@@ -5,6 +5,55 @@
 ;; Author: YAGI Tatsuya <ynyaaa@ybb.ne.jp>
 ;; Maintainer: Masayuki Ataka <masayuki.ataka@gmail.com>
 
+;;; Commentary
+
+;; 最近は全角と半角が入り混じった
+;; テキストを見る事が多くて検索するのが面倒だと感じるようになったので
+;; 全角と半角を区別せずに検索するプログラムを書いてみました。
+
+;; Meadow-2.11 based on GNU Emacs 21.4.1 でテストしています。
+;; emacs21 なら多分動くでしょう。
+;; emacs20.2 以前では多分動きません。
+;; (文字列中のマルチバイト文字を aref で参照している)
+
+;; tcode-isearch-enable-wrapped-search と
+;; tcode-isearch-enable-unification-search が
+;; 共に non-nil の時に働きます。(ちょっと手抜き)
+
+;; 統合検索のルールは tcode-isearch-unification-list に記述します。
+;; この変数はリストで各要素は文字列またはリストです。
+
+;; 要素が文字列の場合は文字列の各文字が入力された時に互いに区別せずに
+;; 検索する文字となります。
+
+;;   例: '("亜亞" "秋穐龝" ...) とすると異体字を区別せずに検索します。
+
+;; ある文字が入力された時、対応する文字列表現(二文字以上)も検索したい場合に
+;; 要素としてリストを指定します。このリストの要素は文字または文字列です。
+
+;;   例: '((?ガ "カ゛") (?ギ "キ゛") ...) とすると「ガ」を入力する事で
+;;       「カ゛」も検索されます。
+;;       ただし「カ゛」を入力しても「ガ」は検索できません。
+
+;; tcode-isearch-unification-list を設定する場合は tc-is20u.el をロードする
+;; 前に値を設定するか、tc-is20u.el を既にロードしている場合は明示的に
+;; (tcode-isearch-unification-setup nil) を評価して下さい。
+
+;; 文字を互いに区別しないのではなく、非対称にしたい場合は
+;; tcode-isearch-unification-reverse を nil にして tc-is20u.el をロードする
+;; か、(tcode-isearch-unification-setup t) を評価して下さい。
+
+;; この場合は互いに区別しなくて良い文字の組については全ての文字について
+;; tcode-isearch-unification-list に区別しない事を明示する必要があります。
+
+;;   例: tcode-isearch-unification-reverse が nil で
+;;       A,Ａ を互いに区別しない場合は以下のように指定する。
+;;       '("AＡ" "ＡA")
+;;       半角の A を入力した時は全角のＡを検索したいが
+;;       全角のＡを入力した時には半角の A を検索しなくて良い場合は
+;;       '("AＡ")
+;;       だけを指定する。
+
 ;;; Code:
 (require 'tc-is20)
 

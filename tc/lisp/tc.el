@@ -300,6 +300,8 @@ nil のときは `tcode-mode' から得る。")
     electric-perl-terminator
     self-insert-command
     sgml-slash
+    sql-magic-semicolon
+    sql-magic-go
     tcode-electric-comma
     tcode-self-insert-command
     tcode-mazegaki-self-insert-or-convert)

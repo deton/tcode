@@ -75,7 +75,9 @@
   ;; isearch
   (if (and tcode-use-isearch
 	   tcode-use-as-default-input-method)
-      (require tcode-isearch-type))
+      (progn
+	(require 'tc-sysdep)
+	(require tcode-isearch-type)))
   ;; autoload
   (autoload 'tcode-use-package "tc")
   (autoload 'tcode-activate "tc")

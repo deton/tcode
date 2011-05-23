@@ -1,5 +1,21 @@
 2007-05-27  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
+	* lisp/try-tbl.el:
+	* lisp/tc.el:
+	* lisp/tc-setup.el:
+	* lisp/tc-image.el:
+	* lisp/tc-help.el:
+	* lisp/tc-bitmap.el:
+	* lisp/eelll.el: コードの変更量が多すぎて、切り分けができませんでした。
+	・tc-bitmap-stroke-to-string を emacs21 で使えるようにする。
+	・emacs22 では eelll の画像ヘルプの位置合わせをピクセル単位でするようにした。
+	・tc-image-stroke-to-string では一画像で三打鍵まで表示できるようにした。
+	・tcode-stroke-to-string-option は Try-Code でも変更しないようにした。
+	その代わりに tcode-stroke-to-string-function を使用するようにした。
+	・try-code-stroke-to-string-use-image を廃止して
+	try-code-stroke-to-string-use-association を新設した。
+	Patch by YAGI Tatsuya <ynyaaa@ybb.ne.jp>
+
 	* lisp/eelll.el (eelll, eelll-random): C-u 付きで EELLLTXT を選択で
 	きるようにした。
 	(eelll-completing-read): Likewise.

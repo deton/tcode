@@ -217,34 +217,15 @@ Tコードモード中のキー操作は次のとおり。
 (setq tcode-special-prefix-alist
       '(((40) "try-etbl" "■" "■" "□" "回")))
 
-(setq tcode-stroke-to-string-option 'try-code-stroke-to-string)
+(setq tcode-stroke-to-string-function 'try-code-stroke-to-string)
 
-(put 'try-code-stroke-to-string 'column-function
-     'try-code-stroke-to-string-column)
-
-(defvar try-code-stroke-to-string-use-image nil)
-
-(defvar try-code-stroke-to-string-option
-  (cond ((and (featurep 'bitmap)
-	      (or (tcode-mule-2-p)
-		  (tcode-mule-3-p)
-		  (tcode-mule-4-p))
-	      window-system)
-	 (autoload 'tc-bitmap-stroke-to-string "tc-bitmap")
-	 'tc-bitmap-stroke-to-string)
-	((and (tcode-mule-4-p)
-	      (> emacs-major-version 20)
-	      (display-images-p))
-	 (autoload 'tc-image-stroke-to-string "tc-image")
-	 'tc-image-stroke-to-string)
-	(t nil)))
+(defvar try-code-stroke-to-string-use-association 'stroke)
 
 (defun try-code-stroke-to-string (stroke)
-  (let ((tcode-stroke-to-string-option try-code-stroke-to-string-option)
-	(dat (tcode-stroke-prefix-match stroke)))
+  (let ((dat (tcode-stroke-prefix-match stroke)))
     (if (null dat)
 	(tcode-stroke-to-string stroke)
-      (let ((x (and (not try-code-stroke-to-string-use-image)
+      (let ((x (and try-code-stroke-to-string-use-association
 		    (tcode-decode (cdr dat)))))
 	(if (not (and (eq 'complete (car x))
 		      (char-or-string-p (cdr x))))
@@ -253,28 +234,13 @@ Tコードモード中のキー操作は次のとおり。
 	  (if (not (stringp x))
 	      (setq x (char-to-string x))))
 	(concat (nth 2 (car dat))
-		(or x (if (equal '(40) (cdr dat))
-			  (tcode-key-to-help-string 40)
-			(tcode-stroke-to-string (cdr dat))))))
+		(if x
+		    (if (eq try-code-stroke-to-string-use-association 'stroke)
+			(concat x (tcode-stroke-to-string (cdr dat)))
+		      x)
+		  (if (equal '(40) (cdr dat))
+		      (tcode-key-to-help-string 40)
+		    (tcode-stroke-to-string (cdr dat))))))
       )))
-
-(defun try-code-stroke-to-string-column (stroke)
-  (let ((dat (tcode-stroke-prefix-match stroke)))
-    (if (not dat)
-	(1- (* 6 (/ (1+ (length stroke)) 2)))
-      (let ((x (and (not try-code-stroke-to-string-use-image)
-		    (tcode-decode (cdr stroke)))))
-	(if (not (and (eq 'complete (car x))
-		      (char-or-string-p (cdr x))))
-	    (setq x nil)
-	  (setq x (cdr x))
-	  (if (not (stringp x))
-	      (setq x (char-to-string x))))
-	(+ (string-width (nth 2 (car dat)))
-	   (if (null x)
-	       (if (equal '(40) (cdr dat))
-		   (string-width (tcode-key-to-help-string 40))
-		 (1- (* 6 (/ (1+ (length (cdr stroke))) 2))))
-	     (string-width x)))))))
 
 ;;; try-tbl.el ends here

@@ -31,11 +31,12 @@
 (defvar tc-image-type
   (if (image-type-available-p 'xpm) 'xpm 'pbm))
 
-(defvar tc-image-type-alist
+(defconst tc-image-type-alist
   '((pbm ;; type
      "P4\n%d %d\n";; header
      "" ;; trailer
-     tc-image-make-pbm-line ;; function
+     tc-image-set-pbm-pixel ;; function
+     tc-image-make-blank-data-pbm
      )
     (xpm ;; type
      ;; header
@@ -51,12 +52,15 @@ static char * image_name[] = {
 \"B\tc blue\",
 "
      "};\n" ;; trailer
-     tc-image-make-xpm-line ;; function
+     tc-image-set-xpm-pixel ;; function
+     tc-image-make-blank-data-xpm
      ))
   "Associative list of button image type data.
 First  element is image type.
 Second element is image header format.
 Third  element is image trailer string.
+Fourth element is function to set pixel value.
+Fifth  element is function to generate blank image data.
 ")
 
 (defvar tc-image-button
@@ -86,51 +90,83 @@ Third  element is image trailer string.
      "XX X"
      "X XX"
      " XX ")
+    ;; third stroke
+    ("   X"
+     "  XX"
+     " XXX"
+     "XXXX")
+    ;; first stroke and third stroke
+    ("XXXX"
+     "XXXX"
+     "XXXX"
+     "XXXX")
+    ;; second stroke and third stroke
+    ("XXXX"
+     "X  X"
+     "X  X"
+     "XXXX")
+    ;; first stroke and second stroke and third stroke
+    ("XXXX"
+     "XX X"
+     "X XX"
+     "XXXX")
     )
   "List of button images.
-First  element is image for no strokes(top or center).
-Second element is image for no strokes(side).
-Third  element is image for first stroke.
-Fourth element is image for first stroke.
-Fifth  element is image for first stroke and second stroke.
+1st element is image for no strokes(top or center).
+2nd element is image for no strokes(side).
+3rd element is image for stroke (1).
+4th element is image for stroke (2).
+5th element is image for stroke (1 2).
+6th element is image for stroke (3).
+7th element is image for stroke (1 3).
+8th element is image for stroke (2 3).
+9th element is image for stroke (1 2 3).
 ")
 
-(defvar tc-image-margins '(0 0 0 0 0)
+(defvar tc-image-margins '(0 0 0 0 0 0)
   "Margin for image of buttons.
-List of left-margin, top-margin, right-margin, bottom-margin and linespace.")
+List of left-margin, top-margin, right-margin, bottom-margin,
+linespace and columnspace.")
 
-(defun tc-image-make-pbm-line (width offset str)
-  (let ((ret (make-string (1+ (lsh (1- width) -3)) 0))
-	(i 0)
-	(l (length str))
-	(pos offset)
-	bpos)
-    (while (< i l)
-      (if (memq (aref str i) '(?\  ?-))
-	  nil
-	(setq bpos (lsh pos -3))
-	(aset ret bpos (logior (aref ret bpos) (lsh 1 (- 7 (logand 7 pos))))))
-      (setq i (1+ i)
-	    pos (1+ pos)))
-    ret))
+(defvar tc-image-columns 5
+  "*Number of columns which help image takes in line.")
 
-(defun tc-image-make-xpm-line (width offset str)
-  (concat "\""
-	  (make-string offset ?\ )
-	  str
-	  (make-string (- width offset (length str)) ?\ )
-	  "\",\n"))
+(defvar tc-image-unit-stroke 3
+  "*Number of keys displayed in one image.
+Appropriate value is 1, 2 or 3.")
 
-(defun tc-image-make-line (width offset str)
-  (funcall (nth 3 (assq tc-image-type tc-image-type-alist))
-	   width offset str))
+(defvar tc-image-cache nil)
 
-(defun tc-image-make-brank-lines (w h)
-  (apply (function concat) (make-list h (tc-image-make-line w 0 nil))))
+(defvar tc-image-white-chars '(32 ?-)
+  "List of characters which are treated as black dots in bitmap image.")
 
-(defun tc-image-make-button-lines (w h offset l)
-  (concat (mapconcat (lambda (s) (tc-image-make-line w offset s)) l nil)
-	  (tc-image-make-brank-lines w (- h (length l)))))
+
+(defun tc-image-set-xpm-pixel (image offset w h x y value)
+  (aset image (+ offset (* (+ w 4) y) x 1) value))
+
+(defun tc-image-white-p (char)
+  (memq char tc-image-white-chars))
+
+(defun tc-image-set-pbm-pixel (image offset w h x y value)
+  (let* ((w2 (1+ (lsh (1- w) -3)))
+	 (pos (+ offset (* w2 y) (lsh x -3)))
+	 (mask (lsh 1 (- 7 (logand x 7))))
+	 (octet (aref image pos)))
+    (if (tc-image-white-p value)
+	;; clear bit
+	(aset image pos (logand (lognot mask) octet))
+      ;; set bit
+      (aset image pos (logior mask octet)))))
+
+(defun tc-image-make-blank-data-xpm (w h &optional val)
+  (mapconcat 'identity
+	     (make-list h (concat "\"" (make-string w (or val 32))
+				  "\",\n"))
+	     ""))
+
+(defun tc-image-make-blank-data-pbm (w h &optional val)
+  (make-string (* h (1+ (lsh (1- w) -3)))
+	       (if (and val (not (tc-image-white-p val))) 255 0)))
 
 (defun tc-image-button-width ()
   (apply (function max)
@@ -142,105 +178,128 @@ List of left-margin, top-margin, right-margin, bottom-margin and linespace.")
 	 (mapcar (function length)
 		 tc-image-button)))
 
-(defun tc-image-width ()
-  (+ (nth 0 tc-image-margins)
-     (tc-image-button-width)
-     (nth 2 tc-image-margins)))
-
-(defun tc-image-height ()
-  (+ (nth 1 tc-image-margins)
-     (* 4 (tc-image-button-height))
-     (* 3 (nth 4 tc-image-margins))
-     (nth 3 tc-image-margins)))
+(defun tc-image-make-button-cache (n)
+  (let* ((button (nth n tc-image-button))
+	 (w (tc-image-button-width))
+	 (h (tc-image-button-height))
+	 (v (make-vector h nil)))
+    (dotimes (i h)
+      (aset v i (concat (nth i button)
+			(make-string (- w (length (nth i button))) 32))))
+    v))
 
 (defun tc-image-make-cache ()
   (let* ((button-width  (tc-image-button-width))
 	 (button-height (tc-image-button-height))
-	 (w (tc-image-width))
-	 (h (tc-image-height))
-	 (alist (assq tc-image-type tc-image-type-alist))
-	 (image-header (format (nth 1 alist) w h))
-	 (image-trailer(nth 2 alist))
-	 (top-lines    (tc-image-make-brank-lines w (nth 1 tc-image-margins)))
-	 (bottom-lines (tc-image-make-brank-lines w (nth 3 tc-image-margins)))
-	 (space-lines  (tc-image-make-brank-lines w (nth 4 tc-image-margins)))
-	 (buttons (mapcar (lambda (l)
-			    (tc-image-make-button-lines
-			     w button-height
-			     (nth 0 tc-image-margins) l))
-			  tc-image-button))
-	 (v (make-vector 50 nil))
-	 (i 0) pos1 pos2 lines-1 lines-2 lines-3 lines-4)
-    (while (< i 25)
-      (setq pos1 (/ i 5)
-	    pos2 (% i 5)
-	    lines-1 (tc-image-button-subr 1 pos1 pos2 buttons)
-	    lines-2 (tc-image-button-subr 2 pos1 pos2 buttons)
-	    lines-3 (tc-image-button-subr 3 pos1 pos2 buttons)
-	    lines-4 (tc-image-button-subr 4 pos1 pos2 buttons))
-      (aset v i
-	    (concat image-header top-lines
-		    lines-1 space-lines
-		    lines-2 space-lines
-		    lines-3 space-lines
-		    lines-4 bottom-lines image-trailer))
-      (if (eq lines-2 (nth 1 buttons)) (setq lines-2 (nth 0 buttons)))
-      (if (eq lines-3 (nth 1 buttons)) (setq lines-3 (nth 0 buttons)))
-      (if (eq lines-4 (nth 1 buttons)) (setq lines-4 (nth 0 buttons)))
-      (aset v (+ i 25)
-	    (concat image-header top-lines
-		    lines-1 space-lines
-		    lines-2 space-lines
-		    lines-3 space-lines
-		    lines-4 bottom-lines image-trailer))
-      (setq i (1+ i)))
-    (setq i 0)
-    (while (< i 50)
-      (let ((image (create-image (aref v i) tc-image-type t ':ascent 'center))
-	    (s (make-string 2 ?\ )))
-	(put-text-property 0 1 'display image s)
-	(put-text-property 1 2 'invisible t s)
-	(aset v i s))
-      (setq i (1+ i)))
-    v))
+	 (linespace     (or (nth 4 tc-image-margins) 0))
+	 (columnspace   (or (nth 5 tc-image-margins) 0))
+	 v-margins h-margins
+	 w h ret)
+    (if (numberp linespace)   (setq linespace   (list linespace)))
+    (if (numberp columnspace) (setq columnspace (list columnspace)))
+    (setq h-margins `(,(or (nth 0 tc-image-margins) 0)
+		      ,@(mapcar (lambda (i) (nth (% i (length columnspace))
+						 columnspace))
+				'(0 1 2 3 4 5 6 7 8))
+		      ,(or (nth 2 tc-image-margins) 0))
+	  v-margins `(,(or (nth 1 tc-image-margins) 0)
+		      ,@(mapcar (lambda (i) (nth (% i (length linespace))
+						 linespace))
+				'(0 1 2))
+		      ,(or (nth 3 tc-image-margins) 0)))
+    (setq w (apply '+ (* 10 button-width) h-margins)
+	  h (apply '+ (* 4 button-height) v-margins))
+    (let* ((alist (assq tc-image-type tc-image-type-alist))
+	   (image-header (format (nth 1 alist) w h))
+	   (image-trailer (nth 2 alist))
+	   (set-func (nth 3 alist))
+	   (image (concat image-header
+			  (funcall (nth 4 alist) w h)
+			  image-trailer)))
+      (let ((tc-image-cache
+	     (vector w h image (length image-header)
+		     set-func
+		     (let ((v (make-vector 10 nil))
+			   (x 0))
+		       (dotimes (i 10)
+			 (setq x (+ x (nth i h-margins)))
+			 (aset v i x)
+			 (setq x (+ x button-width)))
+		       v)
+		     (let ((v (make-vector 4 nil))
+			   (y 0))
+		       (dotimes (j 4)
+			 (setq y (+ y (nth j v-margins)))
+			 (aset v j y)
+			 (setq y (+ y button-height)))
+		       v)
+		     (tc-image-make-button-cache 0)
+		     (tc-image-make-button-cache 1)
+		     (tc-image-make-button-cache 2)
+		     (tc-image-make-button-cache 3)
+		     (tc-image-make-button-cache 4)
+		     (tc-image-make-button-cache 5)
+		     (tc-image-make-button-cache 6)
+		     (tc-image-make-button-cache 7)
+		     (tc-image-make-button-cache 8)
+		     )))
+	(dotimes (key 40)
+	  (tc-image-set-button image key (if (or (< key 10)
+						 (memq (% key 10) '(4 5)))
+					     0 1)))
+	tc-image-cache
+	))))
 
-(defun tc-image-button-subr (pos pos1 pos2 buttons)
-  (if (eq pos1 pos)
-      (if (eq pos2 pos) (nth 4 buttons) (nth 2 buttons))
-    (if (eq pos2 pos) (nth 3 buttons) (nth (if (eq pos 1) 0 1) buttons))))
+(defun tc-image-internal-set-button (image offset w h x y type set-func)
+  (let* ((button (aref tc-image-cache (+ 7 type)))
+	 (bw (length (aref button 0)))
+	 (bh (length button))
+	 line)
+    (dotimes (i bh)
+      (setq line (aref button i))
+      (dotimes (j bw)
+	(funcall set-func image offset w h (+ x j) (+ y i) (aref line j))))))
 
-(defconst tc-image-cache
-  (tc-image-make-cache))
+(defun tc-image-set-button (image key type)
+  (tc-image-internal-set-button
+   image (aref tc-image-cache 3)
+   (aref tc-image-cache 0) (aref tc-image-cache 1)
+   (aref (aref tc-image-cache 5) (% key 10))
+   (aref (aref tc-image-cache 6) (/ key 10))
+   type
+   (aref tc-image-cache 4)))
+
+(setq tc-image-cache (tc-image-make-cache))
 
-(defun tc-image-get-key-0 (pos1 pos2 &optional side-p)
-  (aref tc-image-cache (+ (* pos1 5) pos2 (if side-p 0 25))))
-
-(defun tc-image-get-key-1 (&optional key1 key2)
-  (let* ((l (list (tc-image-get-key-0 0 0 t)
-		  (tc-image-get-key-0 0 0 t)
-		  (tc-image-get-key-0 0 0 t)
-		  (tc-image-get-key-0 0 0 t)
-		  (tc-image-get-key-0 0 0 nil)
-		  (tc-image-get-key-0 0 0 nil)
-		  (tc-image-get-key-0 0 0 t)
-		  (tc-image-get-key-0 0 0 t)
-		  (tc-image-get-key-0 0 0 t)
-		  (tc-image-get-key-0 0 0 t)))
-	 k1x k1y k1side-p k2x k2y k2side-p)
-    (if key1 (setq k1x (% key1 10)
-		   k1y (/ key1 10)
-		   k1side-p (and (/= k1x 4) (/= k1x 5))))
-    (if key2 (setq k2x (% key2 10)
-		   k2y (/ key2 10)
-		   k2side-p (and (/= k2x 4) (/= k2x 5))))
-    (if (and key1 (eq k1x k2x))
-	(setcar (nthcdr k1x l)
-		(tc-image-get-key-0 (1+ k1y) (1+ k2y) k1side-p))
-      (if key1 (setcar (nthcdr k1x l)
-		       (tc-image-get-key-0 (1+ k1y) 0 k1side-p)))
-      (if key2 (setcar (nthcdr k2x l)
-		       (tc-image-get-key-0 0 (1+ k2y) k2side-p))))
-    (apply (function concat) l)))
+(defun tc-image-get-key-1 (&optional key1 key2 key3)
+  (let ((image (copy-sequence (aref tc-image-cache 2))))
+    (when key1
+      (if (eq key1 key2)
+	  (if (eq key1 key3)
+	      ;; key1 == key2 == key3
+	      (tc-image-set-button image key1 8)
+	    ;; key1 == key2 != key3
+	    (tc-image-set-button image key1 4))
+	(if (eq key1 key3)
+	    ;; key1 == key3 != key2
+	    (tc-image-set-button image key1 6)
+	  ;; key1 != key2, key1 != key3
+	  (tc-image-set-button image key1 2))))
+    (when (and key2 (not (eq key1 key2)))
+      (if (eq key2 key3)
+	  ;; key1 != key2 == key3
+	  (tc-image-set-button image key2 7)
+	;; key1 != key2 != key3
+	(tc-image-set-button image key2 3)))
+    (when (and key3 (not (eq key1 key3)) (not (eq key2 key3)))
+      ;; key1 != key3, key2 != key3
+      (tc-image-set-button image key3 5))
+    (let ((s (make-string tc-image-columns ?X)))
+      (put-text-property
+       0 (length s) 'display
+       (create-image image tc-image-type t ':ascent 'center)
+       s)
+      s)))
 
 (defun tc-image-stroke-to-string (stroke)
   (let ((lis (list tcode-stroke-to-string-opener)))
@@ -249,13 +308,29 @@ List of left-margin, top-margin, right-margin, bottom-margin and linespace.")
 	(setq stroke (cdr dat))
 	(setcdr lis (list (nth 2 (car dat))))))
     (while stroke
-      (if (< (car stroke) 40)
-      (setq lis (cons (tc-image-get-key-1 (car stroke) (nth 1 stroke)) lis)
-	    lis (cons tcode-stroke-to-string-separator lis)
-		stroke (cdr (cdr stroke)))
-	(setq lis (cons (tcode-key-to-help-string (car stroke)) lis)
-	      lis (cons tcode-stroke-to-string-separator lis)
-	      stroke (cdr stroke))))
+      (cond ((<= 40 (car stroke))
+	     (setq lis (cons (tcode-key-to-help-string (car stroke)) lis)
+		   lis (cons tcode-stroke-to-string-separator lis)
+		   stroke (cdr stroke)))
+	    ((or (> 2 tc-image-unit-stroke)
+		 (and (nth 1 stroke)
+		      (<= 40 (nth 1 stroke))))
+	     (setq lis (cons (tc-image-get-key-1 (car stroke)) lis)
+		   lis (cons tcode-stroke-to-string-separator lis)
+		   stroke (cdr stroke)))
+	    ((or (> 3 tc-image-unit-stroke)
+		 (and (nth 2 stroke)
+		      (<= 40 (nth 2 stroke))))
+	     (setq lis (cons (tc-image-get-key-1 (car stroke) (nth 1 stroke))
+			     lis)
+		   lis (cons tcode-stroke-to-string-separator lis)
+		   stroke (nthcdr 2 stroke)))
+	    (t
+	     (setq lis (cons (tc-image-get-key-1 (car stroke) (nth 1 stroke)
+						 (nth 2 stroke))
+			     lis)
+		   lis (cons tcode-stroke-to-string-separator lis)
+		   stroke (nthcdr 3 stroke)))))
     (setq lis (cons tcode-stroke-to-string-closer (cdr lis)))
     (apply (function concat) (nreverse lis))))
 

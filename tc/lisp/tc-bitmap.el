@@ -28,10 +28,16 @@
 (defvar tc-bitmap-cache
   (let* ((load-path (cons tcode-data-directory 
 			  (cons tcode-site-data-directory load-path)))
-	 (file (locate-library tc-bitmap-cache-file t)))
-    (with-temp-buffer
-      (insert-file-contents file)
-      (read (current-buffer)))))
+	 (file (locate-library tc-bitmap-cache-file t))
+	 (top (with-temp-buffer
+		(insert-file-contents file)
+		(read (current-buffer))))
+	 (l top))
+    (while l
+      (setcar (cdr (car l)) (compose-string (car (cdr (car l)))))
+      (setq l (cdr l)))
+    top))
+
 
 (defun tc-bitmap-get-key-0 (key1 key2 &optional side)
   (nth 1 (assoc (format "%s %s%s" (if side "side  " "center")
@@ -69,13 +75,21 @@
 	(setq stroke (cdr dat))
 	(setcdr lis (list (nth 2 (car dat))))))
     (while stroke
-      (if (< (car stroke) 40)
-      (setq lis (cons (tc-bitmap-get-key-1 (car stroke) (nth 1 stroke)) lis)
-	    lis (cons tcode-stroke-to-string-separator lis)
-		stroke (cdr (cdr stroke)))
-	(setq lis (cons (tcode-key-to-help-string (car stroke)) lis)
-	      lis (cons tcode-stroke-to-string-separator lis)
-	      stroke (cdr stroke))))
+      (cond ((<= 40 (car stroke))
+	     (setq lis (cons (tcode-key-to-help-string (car stroke)) lis)
+		   lis (cons tcode-stroke-to-string-separator lis)
+		   stroke (cdr stroke)))
+	    ((and (nth 1 stroke)
+		  (<= 40 (nth 1 stroke)))
+	     (setq lis (cons (tc-bitmap-get-key-1 (car stroke))
+			     lis)
+		   lis (cons tcode-stroke-to-string-separator lis)
+		   stroke (cdr stroke)))
+	    (t
+	     (setq lis (cons (tc-bitmap-get-key-1 (car stroke) (nth 1 stroke))
+			     lis)
+		   lis (cons tcode-stroke-to-string-separator lis)
+		   stroke (cdr (cdr stroke))))))
     (setq lis (cons tcode-stroke-to-string-closer (cdr lis)))
     (apply (function concat) (nreverse lis))))
 

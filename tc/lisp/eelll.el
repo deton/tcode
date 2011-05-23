@@ -105,12 +105,12 @@
     (defface eelll
       (if (featurep 'meadow)
 	  '((t (:font "default"
-		  :foreground "black"
-		  :background "white")))
+		      :foreground "black"
+		      :background "white")))
 	'((t (:font "-*-fixed-medium-r-normal-*-16-*-*-*-*-*-*-*"
 		    :foreground "black"
 		    :background "white"))))
-      "*ビットマップを使った EELLL でのヘルプのフェイス"
+      "*一行ヘルプを使った EELLL でのヘルプのフェイス"
       :group 'eelll))
 
 (defvar eelll-previous-error-rate 0)
@@ -145,9 +145,22 @@
   (if (featurep 'meadow)
       '((name . "EELLL")
 	(font . "default"))
-  '((name . "EELLL")
+    '((name . "EELLL")
       (font . "-*-fixed-medium-r-normal-*-16-*-*-*-*-*-*-*")))
   "*`eelll-other-frame'で用いるフレームのパラメータ。")
+
+(defvar eelll-bushu-stroke-alist
+  '((tutcode  20 28 20)
+    (tcode    26 23))
+  "部首合成を表すストローク")
+
+(defvar eelll-use-column-for-help
+  (or (not window-system)
+      (> 22 emacs-major-version))
+  "一行ヘルプを表示する時に桁揃えをカラム単位で行うか否か。
+この変数の値が non-nil で emacs22 を window-system で使っている場合に
+ピクセル単位の計算をする。")
+
 (defvar eelll-frame nil)
 
 (defvar eelll-comment-line nil)
@@ -166,6 +179,11 @@
   (let ((lines (count-lines (point-min) (point-max)))
 	line-list)
     (goto-char (point-min))
+    (while (search-forward-regexp "^;" nil t)
+      (end-of-line)
+      (insert "\r")
+      (delete-char 1))
+    (goto-char (point-min))
     (while (and (> max-line 0)
 		(> lines 0))
       (goto-line (1+ (random lines)))
@@ -180,7 +198,12 @@
 		lines (1- lines))
 	  (delete-region (point) (1+ point-eol)))))
     (erase-buffer)
-    (insert (mapconcat 'identity line-list "\n") "\n")))
+    (insert (mapconcat 'identity line-list "\n") "\n")
+    (goto-char (point-min))
+    (while (search-forward "\r" nil t)
+      (delete-char -1)
+      (insert "\n"))
+    ))
 
 (defun eelll-prepare-text (num)
   "練習テキストNUMを用意する。NUMがnilならば次のレッスンを用意する。"
@@ -229,10 +252,33 @@
       (set-buffer (get-buffer-create eelll-current-text-buffer))
       (erase-buffer)
       (insert text)
+      (eelll-decompose-chars)
       (if eelll-random-mode
 	  (eelll-random-text eelll-random-max-line))
       (goto-char (point-min))))
   (setq eelll-last-lesson eelll-lesson-no))
+
+(defun eelll-decompose-chars ()
+  (goto-char (point-min))
+  (let (c stroke cell (str "▲"))
+    (while (not (eobp))
+      (if (looking-at "^;\\|$")
+	  (forward-line)
+	(setq c (tcode-following-char)
+	      stroke (or (eelll-tcode-encode c)
+			 (eelll-tcode-another-stroke (char-to-string c))))
+	(if stroke
+	    (forward-char)
+	  (delete-char 1)
+	  (setq cell (or (tcode-bushu-help-lookup (char-to-string c))
+			 (tcode-decompose-char (char-to-string c) t)))
+	  (if (not (and (consp cell)
+			(stringp (car cell))
+			(stringp (cdr cell))))
+	      (insert eelll-by-text-dummy-char)
+	    (if tcode-use-postfix-bushu-as-default
+		(insert (car cell) (cdr cell) str)
+	      (insert str (car cell) (cdr cell)))))))))
 
 (defun eelll-lesson-line ()
   "練習テキストの次の行をとってくる。終わりならnilを返す。
@@ -252,10 +298,20 @@ eelll-text-line:	印字イメージ"
 
 (defun eelll-tcode-encode (ch)
   (if (eq ch (tcode-string-to-char "▲"))
-      (if (equal tcode-default-input-method "japanese-TUT-Code")
-	  '(20 28 20)
-	'(26 23))
+      (or (cdr (assq tcode-input-method eelll-bushu-stroke-alist))
+	  '(26 23))
     (tcode-encode ch)))
+
+(defun eelll-tcode-another-stroke (ch)
+  (let ((i (1- (length tcode-another-table))))
+    (catch 'found
+      (while (>= i 0)
+	(let ((c (aref tcode-another-table i)))
+	  (if (string= ch (if (and c (symbolp c))
+			      (eval c)
+			    c))
+	      (throw 'found i)))
+	(setq i (1- i))))))
 
 (defun eelll-stroke-for-char (ch)
   "CH(全角一文字)の打ち方を返す。Tコードで入力できなければnilを返す。"
@@ -280,15 +336,8 @@ Tコードで入力できなければnilを返す。"
 		     (aref eelll-key-table key))
 		   strokes))
 	  (tcode-another-table
-	   (let ((i (1- (length tcode-another-table))))
-	     (catch 'found
-	       (while (>= i 0)
-		 (let ((c (aref tcode-another-table i)))
-		   (if (string= ch (if (and c (symbolp c))
-				       (eval c)
-				     c))
-		       (throw 'found (list (aref eelll-key-table i) ? ))))
-		 (setq i (1- i))))))
+	   (list (aref eelll-key-table (eelll-tcode-another-stroke ch))
+		 ? ))
 	  ((string= ch " ")
 	   (list ? )))))
 
@@ -497,10 +546,10 @@ EELLL 内ではほとんどのコマンドが禁止されています。
   (if tcode-help-with-real-keys
       (progn
 	(forward-line -2)
-	(save-restriction
-	  (narrow-to-region (point) (point))
-	  (eelll-insert-bitmap-help eelll-text-line))
-	(insert "\n"))
+	(while (looking-at "^;")
+	  (forward-line -1))
+	(insert "\n")
+	(eelll-insert-line-help eelll-text-line))
     (setq eelll-upper-row t)
     (if (null eelll-second-hand)
 	(setq eelll-second-hand t
@@ -669,23 +718,7 @@ Emacs内部のcompletionの実装上の問題のため、「?」を
     (princ "\n")
     (setq x (cdr x))))
 
-;;;; ビットマップ表示
-
-(defun eelll-calc-column (stroke)
-  (let ((dat (tcode-stroke-prefix-match stroke)))
-    (if dat
-	(+ (string-width (nth 2 (car dat)))
-	   (1- (* 6 (/ (1+ (length (cdr stroke))) 2))))
-      (1- (* 6 (/ (1+ (length stroke)) 2))))))
-
-(put 'tc-image-stroke-to-string 'column-function 'eelll-calc-column)
-(put 'tc-bitmap-stroke-to-string 'column-function 'eelll-calc-column)
-
-(defun eelll-stroke-to-string-column (stroke s)
-  (let ((fun (get tcode-stroke-to-string-option 'column-function)))
-    (if fun
-	(funcall fun stroke)
-      (string-width s))))
+;;;; 一行ヘルプの表示
 
 (defun eelll-insert-with-face (str)
   (let ((beg (point)))
@@ -695,52 +728,127 @@ Emacs内部のcompletionの実装上の問題のため、「?」を
       (put-text-property beg (point) 'face 'eelll))))
 
 (defun eelll-put-help-char (c)
+  (if (or eelll-use-column-for-help
+	  (not window-system)
+	  (> 22 emacs-major-version))
+      (eelll-put-help-char-by-column c)
+    (eelll-put-help-char-by-pixel c)))
+
+(defun eelll-put-help-char-by-column (c)
   (let* ((ch (char-to-string c))
-	 (stroke (or (eelll-tcode-encode c)
-		     (let ((another (member ch
-					    (mapcar 'eval 
-						    (string-to-list
-						     tcode-another-table)))))
-		       (if another
-			   (list (- (length tcode-another-table)
-				    (length another)))))))
-	 (s (if stroke
-		(tcode-stroke-to-string stroke)))
-	 (ex-col (if s (eelll-stroke-to-string-column stroke s) 5)))
+	 (stroke (eelll-tcode-encode c))
+	 (another (eelll-tcode-another-stroke ch))
+	 (s (cond (stroke
+		   (tcode-stroke-to-string stroke))
+		  (another (concat (let ((tcode-stroke-to-string-closer
+					  tcode-stroke-to-string-separator))
+				     (tcode-stroke-to-string (list another)))
+				   "SPC"))
+		  (t "-- --")))
+	 (ex-col (string-width s)))
     (if (<= (+ help-column (max ex-col 5) 1)
-	    (* (frame-width) 0.60))
+	    (* (frame-width) 0.80))
 	(setq help-column (+ help-column (max ex-col 5) 1))
-      (insert "\n")
-      (end-of-line)
-      (insert "\n")
+      (insert "\n\n")
       (setq help-column (1+ (max ex-col 5))))
-    (insert "|")
+    (forward-line -1)
+    (end-of-line)
     (if (>= ex-col 5)
-    (eelll-insert-with-face (or s "-- --"))
+	(eelll-insert-with-face s)
       (setq ex-col (- 5 ex-col))
       (eelll-insert-with-face (concat (make-string (- ex-col (/ ex-col 2)) 32)
-				      (or s "-- --")
+				      s
 				      (make-string (/ ex-col 2) 32)))
       (setq ex-col 5))
-    (save-excursion
-      (forward-line)
-      (end-of-line)
-      (insert "|")
-      (if (equal ch " ")
-	  (setq ch "SPC"))
-      (setq ex-col (- ex-col (string-width ch)))
-      (eelll-insert-with-face (concat (make-string (- ex-col (/ ex-col 2)) 32)
-				      ch
-				      (make-string (/ ex-col 2) 32))))))
+    (eelll-insert-with-face "|")
+    (forward-line)
+    (end-of-line)
+    (if (equal ch " ")
+	(setq ch "SPC"))
+    (setq ex-col (- ex-col (string-width ch)))
+    (eelll-insert-with-face (concat (make-string (- ex-col (/ ex-col 2)) 32)
+				    ch
+				    (make-string (/ ex-col 2) 32)))
+    (eelll-insert-with-face "|")
+    ))
 
-(defun eelll-insert-bitmap-help (string)
+(defun eelll-put-help-char-by-pixel (c)
+  (let* ((ch (char-to-string c))
+	 (stroke (eelll-tcode-encode c))
+	 (another (eelll-tcode-another-stroke ch))
+	 (s (cond (stroke
+		   (tcode-stroke-to-string stroke))
+		  (another (concat (let ((tcode-stroke-to-string-closer
+					  tcode-stroke-to-string-separator))
+				     (tcode-stroke-to-string (list another)))
+				   "SPC"))
+		  (t "-- --")))
+	 (p1 (progn (forward-line -1) (end-of-line) (point))) p1e p2 p2e
+	 sw cw dw)
+    (if (equal ch " ") (setq ch "SPC"))
+    (narrow-to-region (point) (point))
+    (set-window-start (selected-window) (point))
+    (eelll-insert-with-face s)
+    (eelll-insert-with-face "|")
+    (setq p1e (point))
+    (setq sw (car (pos-visible-in-window-p nil nil t)))
+    (widen)
+    (forward-line)
+    (end-of-line)
+    (setq p2 (point))
+    (narrow-to-region (point) (point))
+    (set-window-start (selected-window) (point))
+    (eelll-insert-with-face ch)
+    (eelll-insert-with-face "|")
+    (setq p2e (point))
+    (setq cw (car (pos-visible-in-window-p nil nil t)))
+    (widen)
+    (setq dw (max cw sw))
+    (if (<= (+ help-column dw)
+	    (* (let ((l (window-inside-pixel-edges))) (- (nth 2 l) (car l)))
+	       0.90))
+	(setq help-column (+ help-column dw))
+      (let (s1 s2)
+	(setq s2 (buffer-substring p2 (point)))
+	(delete-region p2 (point))
+	(setq s1 (buffer-substring p1 p1e))
+	(delete-region p1 p1e)
+	(goto-char p1)
+	(forward-line 2)
+	(setq p1 (point))
+	(insert s1 "\n")
+	(setq p1e (1- (point)))
+	(setq p2 (point))
+	(insert s2 "\n")
+	(setq p2e (1- (point)))
+	(forward-char -1)
+	(setq help-column dw)))
+    (let* ((w (abs (- cw sw)))
+	   (padl (/ w 2))
+	   (padr (- w padl)))
+      (when (< 0 padr)
+	(goto-char (1- (if (<= cw sw) p2e p1e)))
+	(insert 32)
+	(put-text-property (1- (point)) (point)
+			   'display `(space :width (,padr))))
+      (when (< 0 padl)
+	(goto-char (if (<= cw sw) p2 p1))
+	(insert 32)
+	(put-text-property (1- (point)) (point) 
+			   'display `(space :width (,padl))))
+      )
+    (goto-char p2e)
+    (end-of-line)))
+
+(defun eelll-insert-line-help (string)
+  (or (bolp) (insert "\n"))
   (let ((chars (string-to-list string))
 	(help-column 0)
 	(beg (progn 
-	       (insert "\n")
+	       (insert "\n\n")
+	       (forward-char -1)
 	       (point))))
     (mapcar 'eelll-put-help-char chars)
-    (insert "\n")
     (forward-line)))
 
 ;;;
@@ -800,7 +908,8 @@ Emacs内部のcompletionの実装上の問題のため、「?」を
     (while (and (< line eelll-by-text-max-line)
 		(not (eobp)))
       (setq c (tcode-following-char)
-	    stroke (tcode-encode c))
+	    stroke (or (eelll-tcode-encode c)
+		       (eelll-tcode-another-stroke c)))
       (when (and (bolp) (not (bobp))
 		 (memq c bol-kinsoku))
 	(delete-char -1))
@@ -864,9 +973,7 @@ Emacs内部のcompletionの実装上の問題のため、「?」を
   (erase-buffer)
   (delete-other-windows)
   (if tcode-help-with-real-keys
-      (if (>= emacs-major-version 21)
-	  (require 'tc-image)
-	(require 'tc-bitmap))
+      nil
     (when (>= eelll-previous-error-rate eelll-display-help-threshold)
       (split-window-vertically
        (save-excursion
@@ -907,17 +1014,18 @@ Emacs内部のcompletionの実装上の問題のため、「?」を
 		      (buffer-string)))
 	       (res (eelll-match str eelll-text-line))
 	       (err (car (cdr res))))
-	  (insert (car res))
+	  (insert (car res) "\n")
 	  (let ((wrong-chars (tcode-uniq 
 			      (tcode-subtract-set
 			       (string-to-list eelll-text-line)
 			       (string-to-list (car res))))))
 	    (when wrong-chars
-	      (insert "\n\n[間違えた字]")
+	      (insert "\n[間違えた字]")
 	      (if tcode-help-with-real-keys
-		  (eelll-insert-bitmap-help
+		  (eelll-insert-line-help
 		   (mapconcat 'char-to-string wrong-chars nil))
-		(insert "=> " (mapconcat 'char-to-string wrong-chars nil)))))
+		(insert "=> " (mapconcat 'char-to-string wrong-chars nil)
+			"\n"))))
 	  (setq eelll-strokes (+ eelll-strokes (length str))
 		eelll-error-strokes (+ eelll-error-strokes err))))
     (setq eelll-start-time (eelll-current-time)))

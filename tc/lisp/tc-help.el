@@ -64,6 +64,25 @@ nil の場合では見つからないような場合でも、non-nil にすれば見つかる場合が
 (defvar tcode-stroke-to-string-closer ""
   "*`tcode-stroke-to-string'で使われる終了文字列")
 
+(defvar tcode-stroke-to-string-option
+  (cond ((and (tcode-mule-4-p)
+	      (> emacs-major-version 20)
+	      (display-images-p))
+	 (autoload 'tc-image-stroke-to-string "tc-image")
+	 'tc-image-stroke-to-string)
+	((and (featurep 'bitmap)
+	      (or (tcode-mule-2-p)
+		  (tcode-mule-3-p)
+		  (tcode-mule-4-p))
+	      window-system)
+	 (autoload 'tc-bitmap-stroke-to-string "tc-bitmap")
+	 'tc-bitmap-stroke-to-string)
+	(t nil))
+  "*`tcode-stroke-to-string'を制御する変数")
+
+(defvar tcode-stroke-to-string-function nil
+  "*漢直パッケージ毎に`tcode-stroke-to-string'を乗っ取る関数")
+
 (defcustom tcode-help-stroke-hook nil
   "ヘルプ表を表示する前に実行されるフック。"
   :type 'hook :group 'tcode)
@@ -288,26 +307,38 @@ FOR-HELPがnilでない場合は、直接入力できる字に分解する。"
 `tcode-stroke-to-string-separator'を区切りとし、
 `tcode-stroke-to-string-closer'で終わる。
 
-`tcode-stroke-to-string-option'によりストローク表す文字列が変わる。
+`tcode-stroke-to-string-option'によりストロークを表す文字列が変わる。
   nil の時は2桁の数字で表す。
   t の時は tcode-mode でない時に入力される文字で表す。
   vector の時は要素を利用する。
-  関数の時はその関数を呼び出す。"
-  (if (functionp tcode-stroke-to-string-option)
-      (funcall tcode-stroke-to-string-option stroke)
-    (concat tcode-stroke-to-string-opener
-	    (let ((dat (tcode-stroke-prefix-match stroke)))
-	      (when dat
-		(setq stroke (cdr dat))
-		(nth 2 (car dat))))
-	    (mapconcat
-	     (cond ((eq t tcode-stroke-to-string-option)
-		    (lambda (addr) (char-to-string (tcode-key-to-char addr))))
-		   ((vectorp tcode-stroke-to-string-option)
-		    (lambda (addr) (aref tcode-stroke-to-string-option addr)))
-		   (t (lambda (addr) (format "%02d" addr))))
-	     stroke tcode-stroke-to-string-separator)
-	    tcode-stroke-to-string-closer)))
+  関数の時はその関数を呼び出す。
+
+ただし`tcode-stroke-to-string-function'が設定されている時は
+その関数を直接呼び出すので上記が成立するとは限らない。"
+  (cond ((functionp tcode-stroke-to-string-function)
+	 (let ((f tcode-stroke-to-string-function)
+	       (tcode-stroke-to-string-function nil))
+	   (funcall f stroke)))
+	((functionp tcode-stroke-to-string-option)
+	 (let ((f tcode-stroke-to-string-option)
+	       (tcode-stroke-to-string-option nil))
+	   (funcall f stroke)))
+	(t
+	 (concat (let ((dat (tcode-stroke-prefix-match stroke)))
+		   (when dat
+		     (setq stroke (cdr dat))
+		     (nth 2 (car dat))))
+		 tcode-stroke-to-string-opener
+		 (mapconcat
+		  (cond ((eq t tcode-stroke-to-string-option)
+			 (lambda (addr) (char-to-string
+					 (tcode-key-to-char addr))))
+			((vectorp tcode-stroke-to-string-option)
+			 (lambda (addr) (aref tcode-stroke-to-string-option
+					      addr)))
+			(t (lambda (addr) (format "%02d" addr))))
+		  stroke tcode-stroke-to-string-separator)
+		 tcode-stroke-to-string-closer))))
 
 (defun tcode-help-make-bushu-structure-string (str root)
   (cond ((null str)

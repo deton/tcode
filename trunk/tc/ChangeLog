@@ -1,3 +1,8 @@
+2004-10-14  Masayuki Ataka  <masayuki.ataka@gmail.com>
+
+	* lisp/tc-is20.el (isearch-search): CVS Emacs 版の T-Code で
+	isearch がエラーになるバグを修正した。
+
 2004-06-05  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
 	* lisp/tc.el (tcode-input-command-list): perl モード対策。

@@ -568,6 +568,18 @@ Emacs内部のcompletionの実装上の問題のため、「?」を
 			   tcode-default-input-method))
     (tcode-inactivate))
   (load eelll-configuration-file-name t)
+  (if current-prefix-arg
+      (setq eelll-text
+	    (completing-read "text for eelll: "
+			     (mapcar 'list
+				     (nconc (and tcode-data-directory
+						 (directory-files
+						  tcode-data-directory
+						  nil "^EELLLTXT"))
+					    (directory-files
+					     tcode-site-data-directory
+					     nil "^EELLLTXT")))
+			     nil t (or eelll-text "EELLLTXT"))))
   (if (not (equal eelll-current-text eelll-text))
       (let ((config (assoc eelll-text eelll-last-lesson-alist)))
 	(setq eelll-last-lesson (if config
@@ -579,6 +591,7 @@ Emacs内部のcompletionの実装上の問題のため、「?」を
 	       (get-buffer eelll-text-buffer))
 	  (kill-buffer eelll-text-buffer))
       (tcode-set-work-buffer eelll-text-buffer eelll-text)
+      (setq eelll-current-text eelll-text)
       (widen)
       (goto-char (point-min))
       (while (re-search-forward "^Lesson \\([0-9]+\\):.*[rRlL]+!?$" nil t)
@@ -807,18 +820,20 @@ Emacs内部のcompletionの実装上の問題のため、「?」を
   (goto-char (point-min)))
 
 ;;;###autoload
-(defun eelll (&optional lesson)
+(defun eelll (&optional lesson text)
   "EELLL を始める。詳しくは `eelll-mode' の解説を見よ。"
   (interactive (eelll-completing-read))
+  (if text (setq eelll-text text))
   (setq eelll-random-mode nil)
   (eelll-init))
 
 ;;;###autoload
-(defun eelll-random (&optional lesson)
+(defun eelll-random (&optional lesson text)
   "ランダムモードで EELLL を始める。
 指定したテキストの中からランダムに
 数行(`eelll-random-max-line'で指定した行数)選択される。"
   (interactive (eelll-completing-read))
+  (if text (setq eelll-text text))
   (setq eelll-random-mode t)
   (eelll-init))
 

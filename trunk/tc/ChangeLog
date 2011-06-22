@@ -1,3 +1,7 @@
+2011-06-22  Masayuki Ataka  <masayuki.ataka@gmail.com>
+
+	* lisp/guess (guess): Emacs 23+ 以降を mule6 として認識するようにした。
+
 2007-05-27  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
 	* lisp/try-tbl.el:

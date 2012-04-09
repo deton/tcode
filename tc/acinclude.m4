@@ -1,7 +1,7 @@
 dnl
 dnl Execute arbitrary emacs lisp
 dnl
-AC_DEFUN(AC_EMACS_LISP, [
+AC_DEFUN([AC_EMACS_LISP], [
 elisp="$2"
 if test -z "$3"; then
 	AC_MSG_CHECKING(for $1)
@@ -15,7 +15,7 @@ if test -z "$3"; then
 fi
 ])
 
-AC_DEFUN(AC_XEMACS_P, [
+AC_DEFUN([AC_XEMACS_P], [
   AC_MSG_CHECKING([if $EMACS is really XEmacs])
   AC_EMACS_LISP(xemacsp,(if (string-match \"XEmacs\" emacs-version) \"yes\" \"no\") ,"noecho")
   XEMACS=${EMACS_cv_SYS_xemacsp}
@@ -32,7 +32,7 @@ dnl
 dnl Determine the emacs version we are running.
 dnl Automatically substitutes @EMACS_VERSION@ with this number.
 dnl
-AC_DEFUN(AC_EMACS_VERSION, [
+AC_DEFUN([AC_EMACS_VERSION], [
 AC_MSG_CHECKING(for emacs version)
 AC_EMACS_LISP(version,(and (boundp 'emacs-major-version) (format \"%d.%d\" emacs-major-version emacs-minor-version)),"noecho")
 EMACS_VERSION=${EMACS_cv_SYS_version}
@@ -86,7 +86,7 @@ dnl Determine whether the specified version of Emacs supports packages
 dnl or not.  Currently, only XEmacs 20.3 does, but this is a general
 dnl check.
 dnl
-AC_DEFUN(AC_EMACS_PACKAGES, [
+AC_DEFUN([AC_EMACS_PACKAGES], [
 AC_ARG_WITH(package-dir,
 changequote(<<, >>)dnl
   --with-package-dir      Configure as a XEmacs package in directory,

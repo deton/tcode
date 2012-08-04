@@ -1,5 +1,9 @@
 2012-08-04  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
+	* configure: regenerated.
+
+	* elisp-comp, missing: アップデートした。
+
 	* configure.ac: tc バージョンを 3.0 に設定した。
 	(AM_INIT_AUTOMAKE): 古い書き方を改めて、AC_INIT を使った。
 

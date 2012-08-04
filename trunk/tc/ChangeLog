@@ -1,3 +1,8 @@
+2012-08-04  Masayuki Ataka  <masayuki.ataka@gmail.com>
+
+	* configure.ac: tc バージョンを 3.0 に設定した。
+	バグ・レポートの送り先を tcode@googlegroups.com に設定した。
+
 2011-06-22  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
 	* lisp/guess (guess): Emacs 23+ 以降を mule6 として認識するようにした。

@@ -1,6 +1,5 @@
-AC_INIT(configure.ac)
-AM_INIT_AUTOMAKE([tc], [3.0], [tcode@googlegroups.com])
-AC_PREREQ(2.4)
+AC_INIT([tc], [3.0])
+AM_INIT_AUTOMAKE
 
 SHELL=/bin/sh
 

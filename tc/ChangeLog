@@ -1,3 +1,8 @@
+2012-08-10  Yoshihiro Yuse  <yoyuse@gmail.com>
+
+	* lisp/ttc-ltbl.el (tcode-tbl): TT-Code を第三版へアップデートしました。
+	TT-Code 第三版の変更部分は左表のみです。
+
 2012-08-04  Masayuki Ataka  <masayuki.ataka@gmail.com>
 
 	* configure: regenerated.
